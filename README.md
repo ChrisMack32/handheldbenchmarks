@@ -56,4 +56,4 @@ Original brand assets remain attributable to Wulff Den. This fork is labeled as 
 
 ## Motion
 
-Decorative hero drift and signal bars, one-time section entrances, and short dialog/hover transitions add restrained motion. The Pause motion control persists locally. System reduced-motion preferences disable animation; offscreen or backgrounded hero artwork pauses automatically. Chart bars stay steady during filtering.
+Decorative hero drift and signal bars, one-time section entrances, and short dialog/hover transitions add restrained motion. The Pause motion control persists locally. System reduced-motion preferences disable animation; offscreen or backgrounded hero artwork pauses automatically. Results enter as they scroll into view, with a brief bar reveal. Leader accents, comparison cards, and the footer have ambient motion; numeric scores remain steady. Starred devices use amber selection rows, bars, badges, and jump shortcuts above the chart.

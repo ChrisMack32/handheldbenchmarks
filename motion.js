@@ -44,6 +44,7 @@ syncMotion();
 const art = document.querySelector(".den-art");
 let artVisible = true;
 function syncActivity() {
+  root.classList.toggle("page-idle", document.hidden);
   art.classList.toggle("motion-idle", document.hidden || !artVisible);
 }
 document.addEventListener("visibilitychange", syncActivity);
@@ -63,8 +64,22 @@ if ("IntersectionObserver" in window) {
     },
     { threshold: 0.12 },
   );
-  document
-    .querySelectorAll(".hero-copy, .den-art, .method-note, .footer-top")
-    .forEach((el) => entrance.observe(el));
+  const observed = new WeakSet();
+  function observeSections() {
+    document
+      .querySelectorAll(
+        ".hero-copy, .den-art, .filters, .winner, .summary > *, .chart-card, .bar-row, .method-note, .footer-top, .footer-wordmark",
+      )
+      .forEach((el) => {
+        if (observed.has(el)) return;
+        observed.add(el);
+        entrance.observe(el);
+      });
+  }
+  observeSections();
+  new MutationObserver(observeSections).observe(
+    document.getElementById("results"),
+    { childList: true, subtree: true },
+  );
 }
 syncActivity();

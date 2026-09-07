@@ -1159,3 +1159,133 @@ dialog::backdrop {
     transform: none;
   }
 }
+
+/* Amber identifies a user's stars; blue/green still identify the platform. */
+:root {
+  --star-color: #ffd174;
+}
+.device.device-starred {
+  background: #ffd17412;
+  box-shadow: inset 3px 0 var(--star-color);
+  border-radius: 3px;
+}
+.device.device-starred label {
+  color: #ffe5b1;
+  font-weight: 600;
+}
+.device-starred .star[aria-pressed="true"] {
+  color: #201706;
+  background: var(--star-color);
+  border-radius: 5px;
+  box-shadow: 0 0 12px #ffd17422;
+}
+.bar-row.focused,
+.bar-row.focused:hover {
+  background: linear-gradient(90deg, #ffd17420, #ffd17408);
+  box-shadow: inset 4px 0 var(--star-color);
+  opacity: 1;
+  border-bottom-color: #ffd17455;
+}
+.bar-row.focused .bar-label,
+.bar-row.focused .bar-value {
+  color: #ffe4ad;
+}
+.bar-row.focused .bar-fill {
+  background: linear-gradient(90deg, #b47721, #ffd174);
+}
+.bar-row.focused .rank {
+  color: var(--star-color);
+}
+.starred-badge {
+  display: inline-block;
+  color: #201706;
+  background: var(--star-color);
+  border: 1px solid var(--star-color);
+  font:
+    7px "IBM Plex Mono",
+    monospace;
+  padding: 3px 5px;
+  margin-top: 6px;
+  border-radius: 2px;
+  letter-spacing: 0.8px;
+}
+.bar-row .starred-badge + .leader-badge {
+  display: inline-block;
+  margin-left: 5px;
+}
+.bar-row.muted {
+  opacity: 0.5;
+}
+.bar-row.muted:hover,
+.bar-row.muted:focus-visible {
+  opacity: 1;
+}
+.highlight-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: #211d15;
+  border: 1px solid #806139;
+  border-left: 3px solid var(--star-color);
+  padding: 13px 16px;
+  margin: 0 0 15px;
+  border-radius: 3px;
+}
+.highlight-strip[hidden] {
+  display: none;
+}
+.highlight-title {
+  color: var(--star-color);
+  font:
+    9px "IBM Plex Mono",
+    monospace;
+  white-space: nowrap;
+}
+.highlight-links {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.highlight-links button {
+  background: #ffd17410;
+  border: 1px solid #ffd17444;
+  border-radius: 3px;
+  color: #ffe5b5;
+  padding: 7px 9px;
+  font-size: 10px;
+  text-align: left;
+}
+.highlight-links button:hover {
+  background: #ffd17425;
+}
+.highlight-links button span {
+  margin-left: 8px;
+}
+#clear-stars {
+  border: 0;
+  background: none;
+  color: #d8bf93;
+  font-size: 10px;
+  padding: 7px;
+}
+@media (max-width: 760px) {
+  .highlight-strip {
+    padding: 12px;
+    gap: 9px;
+  }
+  .highlight-links {
+    flex-basis: 100%;
+    order: 3;
+  }
+  .highlight-title {
+    flex: 1;
+  }
+  .highlight-links button {
+    font-size: 9px;
+  }
+  .starred-badge {
+    font-size: 6px;
+  }
+}

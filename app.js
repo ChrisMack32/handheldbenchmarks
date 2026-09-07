@@ -77,7 +77,7 @@ function renderDevices() {
     matches
       .map(
         (d, i) =>
-          `<div class="device"><label><input type="checkbox" data-index="${i}" ${selected.has(d.name) ? "checked" : ""}><span>${esc(d.name)}</span></label><button class="star" data-index="${i}" aria-label="Highlight ${esc(d.name)}" aria-pressed="${s.stars.has(d.name)}">${s.stars.has(d.name) ? "★" : "☆"}</button></div>`,
+          `<div class="device ${s.stars.has(d.name) ? "device-starred" : ""}"><label><input type="checkbox" data-index="${i}" ${selected.has(d.name) ? "checked" : ""}><span>${esc(d.name)}</span></label><button class="star" data-index="${i}" aria-label="Highlight ${esc(d.name)}" aria-pressed="${s.stars.has(d.name)}">${s.stars.has(d.name) ? "★" : "☆"}</button></div>`,
       )
       .join("") || '<p class="filter-help">No devices match your search.</p>';
   $("devices")
@@ -125,6 +125,29 @@ function renderChart() {
   $("result-count").textContent =
     `${rows.length} of ${entries().length} devices with selected results`;
   $("export").disabled = !rows.length;
+  const starred = rows.filter((d) => s.stars.has(d.name));
+  const strip = document.getElementById("highlight-strip");
+  strip.hidden = !starred.length;
+  strip.innerHTML = `<span class="highlight-title">★ ${starred.length} highlighted</span><div class="highlight-links">${starred.map((d) => `<button data-highlight="${esc(d.name)}">${esc(d.name)} <span aria-hidden="true">↓</span></button>`).join("")}</div><button id="clear-stars">Clear stars</button>`;
+  strip.querySelectorAll("[data-highlight]").forEach((button) =>
+    button.addEventListener("click", () => {
+      const index = rows.findIndex((d) => d.name === button.dataset.highlight);
+      const row = $("chart").querySelector(`[data-result="${index}"]`);
+      row?.scrollIntoView({
+        block: "center",
+        behavior:
+          document.documentElement.dataset.motion === "on"
+            ? "smooth"
+            : "instant",
+      });
+      row?.focus({ preventScroll: true });
+    }),
+  );
+  $("clear-stars")?.addEventListener("click", () => {
+    s.stars.clear();
+    renderDevices();
+    renderChart();
+  });
   const anyStar = rows.some((d) => s.stars.has(d.name));
   const ranks = new Map(
     rows.map((d) => [
@@ -137,7 +160,7 @@ function renderChart() {
     ? rows
         .map(
           (d, index) =>
-            `<button type="button" data-result="${index}" aria-label="Compare ${esc(d.name)}, score ${format(d.score)}" class="bar-row ${d.score === best.score ? "leader-row" : ""} ${s.stars.has(d.name) ? "focused" : anyStar && d.score !== best.score ? "muted" : ""}"><span class="rank">${String(ranks.get(d.name)).padStart(2, "0")}</span><div class="bar-label">${s.stars.has(d.name) ? "★ " : ""}${esc(d.name)}${d.score === best.score ? '<span class="leader-badge">TOP SCORE</span>' : ""}${d.condition ? `<small>${esc(d.condition)}</small>` : ""}</div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${Math.max(0, (d.score / best.score) * 100)}%"></div></div><span class="bar-value">${format(d.score)}<small>${format((d.score / best.score) * 100)}% of leader</small></span></button>`,
+            `<button type="button" data-result="${index}" aria-label="Compare ${esc(d.name)}, score ${format(d.score)}" class="bar-row ${d.score === best.score ? "leader-row" : ""} ${s.stars.has(d.name) ? "focused" : anyStar && d.score !== best.score ? "muted" : ""}"><span class="rank">${String(ranks.get(d.name)).padStart(2, "0")}</span><div class="bar-label">${s.stars.has(d.name) ? "★ " : ""}${esc(d.name)}${s.stars.has(d.name) ? '<span class="starred-badge">★ STARRED</span>' : ""}${d.score === best.score ? '<span class="leader-badge">TOP SCORE</span>' : ""}${d.condition ? `<small>${esc(d.condition)}</small>` : ""}</div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${Math.max(0, (d.score / best.score) * 100)}%"></div></div><span class="bar-value">${format(d.score)}<small>${format((d.score / best.score) * 100)}% of leader</small></span></button>`,
         )
         .join("")
     : '<div class="empty">No results in this comparison.<br>Select devices or choose another metric.<button id="restore">Select all devices</button></div>';
@@ -255,6 +278,7 @@ function render() {
     $("device-count").textContent = "";
     ["stat-count", "stat-type"].forEach((id) => ($(id).textContent = "—"));
     $("winner").hidden = true;
+    $("highlight-strip").hidden = true;
     $("compare-open").disabled = true;
     $("stat-unit").textContent = "Source-reported results";
     $("chart-title").textContent = "Performance ranking";
