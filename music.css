@@ -1,109 +1,42 @@
-.soundtrack {
-  border: 1px solid #34373e;
-  border-left: 3px solid var(--den-cyan);
-  background: linear-gradient(100deg, #152125, #151518 60%);
-  margin: 0 0 26px;
-  padding: 18px 21px;
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 12px 32px;
+.nav-music {
+  display: inline-flex;
   align-items: center;
-  position: relative;
-}
-.soundtrack-info {
-  display: flex;
-  gap: 15px;
-  align-items: center;
-}
-.soundtrack-icon {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-  width: 32px;
-  height: 30px;
-}
-.soundtrack-icon i {
-  display: block;
-  width: 3px;
-  background: var(--den-cyan);
-  height: 10px;
-}
-.soundtrack-icon i:nth-child(2) {
-  height: 23px;
-}
-.soundtrack-icon i:nth-child(3) {
-  height: 16px;
-}
-.soundtrack-icon i:nth-child(4) {
-  height: 27px;
-}
-.soundtrack-icon i:nth-child(5) {
-  height: 12px;
-}
-.soundtrack-info strong {
-  display: block;
-  font-size: 13px;
-  color: #f0f0f5;
-}
-.music-status {
-  font-size: 10px;
-  color: #989da9;
-  margin: 5px 0 0;
-  line-height: 1.5;
-}
-.music-controls {
-  display: flex;
-  gap: 13px;
-  align-items: center;
-  justify-content: flex-end;
-}
-.music-controls button {
-  font-size: 11px;
-  white-space: nowrap;
-  color: #a4edfa;
-  background: #203a42;
-  border: 1px solid #407d8c;
-  border-radius: 3px;
-  min-width: 105px;
-  padding: 11px 14px;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #3a444b;
+  border-radius: 4px;
+  color: #b9c2ca;
+  font:
+    11px "DM Sans",
+    sans-serif;
   cursor: pointer;
+  padding: 9px 12px;
+  white-space: nowrap;
 }
-.music-controls button:hover {
-  background: #2b4e58;
+.nav-music:hover,
+.nav-music[aria-pressed="true"] {
+  color: #88e3f3;
+  border-color: #338396;
+  background: #14bfdf0d;
 }
-.music-controls label {
+#music-icon {
+  width: 10px;
+  text-align: center;
   font-size: 10px;
-  color: #adb1bd;
-  margin: 0;
 }
-.music-controls input {
-  accent-color: var(--den-cyan);
-  width: 80px;
-  min-width: 0;
-}
-.music-controls output {
-  color: #d3d5df;
-  font: 10px monospace;
-  min-width: 30px;
-}
-.music-progress {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  grid-column: 1/-1;
-}
-.music-progress span {
-  font: 9px monospace;
-  color: #969ba8;
-}
-.music-progress input {
-  accent-color: var(--den-cyan);
-  flex: 1;
-  min-width: 0;
-  height: 3px;
+.music-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 .music-credits {
-  grid-column: 1/-1;
+  margin-top: 24px;
   font-size: 9px;
   color: #a3a5b0;
   line-height: 1.7;
@@ -122,49 +55,40 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-.soundtrack.is-playing .soundtrack-icon i {
-  animation: soundtrack-eq 1s ease-in-out infinite alternate;
-}
-.soundtrack.is-playing .soundtrack-icon i:nth-child(2n) {
-  animation-delay: -0.7s;
-}
-.soundtrack.is-playing .soundtrack-icon i:nth-child(3n) {
-  animation-delay: -0.3s;
-}
-@keyframes soundtrack-eq {
-  from {
-    transform: scaleY(0.5);
-  }
-  to {
-    transform: scaleY(1.1);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .soundtrack.is-playing .soundtrack-icon i {
-    animation: none;
-  }
-}
 @media (max-width: 760px) {
-  .soundtrack {
-    grid-template-columns: 1fr;
-    padding: 16px;
-    margin-bottom: 20px;
-    gap: 15px;
+  .site-header nav {
+    gap: 12px;
   }
-  .music-controls {
-    justify-content: flex-start;
-    gap: 11px;
-  }
-  .music-controls input {
-    flex: 1;
-  }
-  .soundtrack-info strong {
-    font-size: 12px;
-  }
-  .music-credits {
-    font-size: 8px;
-  }
-  .music-status {
+  .nav-music {
     font-size: 9px;
+    padding: 8px;
+    gap: 5px;
+  }
+}
+@media (max-width: 410px) {
+  .site-header {
+    padding: 0 12px;
+  }
+  .site-header nav {
+    gap: 9px;
+  }
+  .brand-wordmark {
+    font-size: 20px;
+  }
+  .brand-wordmark > span {
+    font-size: 5px;
+  }
+  .brand img {
+    width: 27px;
+    height: 27px;
+  }
+  .brand {
+    gap: 6px;
+  }
+  .nav-music {
+    padding: 8px 6px;
+  }
+  .nav-music > span:last-child {
+    display: none;
   }
 }

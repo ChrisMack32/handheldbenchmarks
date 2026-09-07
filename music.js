@@ -1,65 +1,95 @@
 const audio = document.getElementById("background-audio");
 const toggle = document.getElementById("music-play");
-const slider = document.getElementById("music-volume");
-const seek = document.getElementById("music-seek");
+const icon = document.getElementById("music-icon");
 const status = document.getElementById("music-status");
-const player = document.getElementById("soundtrack");
-audio.volume = 0.5;
-const clock = (seconds) =>
-  `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+const randomFraction =
+  crypto.getRandomValues(new Uint32Array(1))[0] / 4294967296;
+let requested = false,
+  positioned = false,
+  fadingIn = false,
+  fadeId = 0,
+  actionId = 0;
+audio.volume = 0;
 function sync() {
-  const playing = !audio.paused;
-  player.classList.toggle("is-playing", playing);
-  toggle.textContent = playing ? "Ⅱ Pause" : "▶ Play music";
+  icon.textContent = requested ? "Ⅱ" : "▶";
+  toggle.setAttribute("aria-pressed", String(requested));
   toggle.setAttribute(
     "aria-label",
-    playing ? "Pause background music" : "Play background music",
+    requested ? "Pause background music" : "Play background music",
   );
-  toggle.setAttribute("aria-pressed", String(playing));
+  toggle.title = requested
+    ? "Pause music · fades out"
+    : "Play music · fades in to 50%";
 }
+function fadeTo(target, duration, complete = () => {}) {
+  cancelAnimationFrame(fadeId);
+  const from = audio.volume,
+    started = performance.now();
+  function step(now) {
+    const progress = Math.min(1, (now - started) / duration);
+    const eased = progress * progress * (3 - 2 * progress);
+    audio.volume = Math.max(0, Math.min(1, from + (target - from) * eased));
+    if (progress < 1) fadeId = requestAnimationFrame(step);
+    else complete();
+  }
+  fadeId = requestAnimationFrame(step);
+}
+function fadeInWhenReady() {
+  if (!requested || !positioned || audio.paused || audio.seeking || fadingIn)
+    return;
+  fadingIn = true;
+  status.textContent = "Music playing";
+  fadeTo(0.5, 1600);
+}
+audio.addEventListener("loadedmetadata", () => {
+  if (positioned || !Number.isFinite(audio.duration)) return;
+  // One random point per page load, leaving space before the playlist ends.
+  audio.currentTime = randomFraction * Math.max(0, audio.duration - 20);
+  positioned = true;
+});
+audio.addEventListener("seeked", fadeInWhenReady);
+audio.addEventListener("playing", fadeInWhenReady);
 toggle.addEventListener("click", async () => {
-  if (!audio.paused) {
-    audio.pause();
+  const action = ++actionId;
+  requested = !requested;
+  fadingIn = false;
+  sync();
+  if (!requested) {
+    status.textContent = "Fading music out";
+    fadeTo(0, 850, () => {
+      if (requested) return;
+      audio.pause();
+      status.textContent = "Music paused";
+    });
     return;
   }
-  status.textContent = "Loading the soundtrack…";
+  cancelAnimationFrame(fadeId);
+  status.textContent = "Loading music";
   try {
+    // Keep play inside the click handler for browser playback permission.
     await audio.play();
+    if (action === actionId) fadeInWhenReady();
   } catch (error) {
-    if (error.name !== "AbortError")
-      status.textContent = "Unable to play. Press Play to retry.";
+    if (action !== actionId || error.name === "AbortError") return;
+    requested = false;
+    audio.volume = 0;
+    status.textContent = "Unable to play music. Press Play to retry.";
+    sync();
   }
 });
-audio.addEventListener("playing", () => {
-  status.textContent = "Now playing · loops automatically";
-  sync();
-});
-audio.addEventListener("pause", () => {
-  status.textContent = "Paused · pick up where you left off";
-  sync();
-});
-audio.addEventListener("waiting", () => {
-  status.textContent = "Buffering…";
-});
 audio.addEventListener("error", () => {
+  cancelAnimationFrame(fadeId);
+  requested = false;
+  fadingIn = false;
+  audio.volume = 0;
   status.textContent = "Audio could not load. Refresh or try again.";
   sync();
 });
-audio.addEventListener("loadedmetadata", () => {
-  seek.disabled = false;
-  seek.max = audio.duration;
-  document.getElementById("music-duration").textContent = clock(audio.duration);
-});
-audio.addEventListener("timeupdate", () => {
-  seek.value = audio.currentTime;
-  document.getElementById("music-time").textContent = clock(audio.currentTime);
-  seek.setAttribute("aria-valuetext", clock(audio.currentTime));
-});
-seek.addEventListener("input", () => {
-  if (Number.isFinite(audio.duration)) audio.currentTime = Number(seek.value);
-});
-slider.addEventListener("input", () => {
-  audio.volume = Number(slider.value) / 100;
-  document.getElementById("music-volume-value").value = `${slider.value}%`;
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && !requested) {
+    cancelAnimationFrame(fadeId);
+    audio.volume = 0;
+    audio.pause();
+  }
 });
 sync();

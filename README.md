@@ -60,6 +60,6 @@ Decorative hero drift and signal bars, one-time section entrances, and short dia
 
 ## Optional background music
 
-An in-page audio player beneath the hero plays the full Wulff Den chilled-beats playlist at 50% default volume. It uses native HTML audio with no YouTube embed, loads media only on demand, supports seeking and pause/resume, and loops at the end. Playback begins only after a click. Mobile browsers may defer volume control to the device.
+A compact Music button in the header plays the full Wulff Den chilled-beats playlist. Each page load selects a new random starting point; pausing and resuming within that page keeps the current position. Play fades up to 50% volume over 1.6 seconds, and Pause fades to silence over 0.85 seconds. It uses native HTML audio with no YouTube embed, loads media only on demand, and loops at the end. Playback begins only after a click. Mobile browsers may defer volume control to the device, which can limit scripted fades.
 
-The source video explicitly displays a Creative Commons Attribution reuse license. Full source, artist credits, license, and adaptation details are in `assets/MUSIC-LICENSE.md` and the player's expandable credits. The 128 kbps MP3 is approximately 49 MiB and is served by GitHub Pages. Keep `assets/wulffden-chilled-beats.mp3` and its license alongside the site when deploying.
+The source video explicitly displays a Creative Commons Attribution reuse license. Full source, artist credits, license, and adaptation details are in `assets/MUSIC-LICENSE.md` and the footer's expandable credits. The 128 kbps MP3 is approximately 49 MiB and is served by GitHub Pages. Keep `assets/wulffden-chilled-beats.mp3` and its license alongside the site when deploying.

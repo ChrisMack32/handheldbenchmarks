@@ -47,6 +47,15 @@
           class="nav-source"
           >Source <span aria-hidden="true">↗</span></a
         >
+        <button
+          id="music-play"
+          class="nav-music"
+          aria-label="Play background music"
+          aria-pressed="false"
+          title="Play music · random starting point · 50% volume"
+        >
+          <span id="music-icon" aria-hidden="true">▶</span><span>Music</span>
+        </button>
       </nav>
     </header>
     <main>
@@ -98,87 +107,6 @@
             ><span>DEVICE BENCHMARKS<br />▥ WULFF DEN</span>
           </div>
         </div>
-      </section>
-      <section id="soundtrack" class="soundtrack" aria-label="Background music">
-        <div class="soundtrack-info">
-          <span class="soundtrack-icon" aria-hidden="true"
-            ><i></i><i></i><i></i><i></i><i></i
-          ></span>
-          <div>
-            <strong>Wulff Den chilled beats</strong>
-            <p id="music-status" class="music-status" role="status">
-              A little music for your next comparison.
-            </p>
-          </div>
-        </div>
-        <div class="music-controls">
-          <button id="music-play" aria-pressed="false">▶ Play music</button
-          ><label for="music-volume">Volume</label
-          ><input
-            id="music-volume"
-            type="range"
-            min="0"
-            max="100"
-            value="50"
-          /><output id="music-volume-value" for="music-volume">50%</output>
-        </div>
-        <div class="music-progress">
-          <span id="music-time">0:00</span
-          ><input
-            id="music-seek"
-            type="range"
-            min="0"
-            max="3187"
-            value="0"
-            step="1"
-            aria-label="Track position"
-            disabled
-          /><span id="music-duration">53:07</span>
-        </div>
-        <details class="music-credits">
-          <summary>Music credits &amp; source</summary>
-          <p>
-            <a
-              href="https://www.youtube.com/watch?v=wdKbdiubuaA"
-              target="_blank"
-              rel="noopener"
-              >WULFF DEN x Chilled beats to relax and study to [Full
-              Playlist]</a
-            >, published by WULFF DEN Podcast. Music by
-            <a
-              href="https://www.youtube.com/@middleneck2617"
-              target="_blank"
-              rel="noopener"
-              >Middleneck</a
-            >,
-            <a
-              href="https://www.youtube.com/@vanilluxepavilion"
-              target="_blank"
-              rel="noopener"
-              >Vanilluxe Pavilion</a
-            >, and
-            <a
-              href="https://www.fiverr.com/zerocakes"
-              target="_blank"
-              rel="noopener"
-              >Zerocakes</a
-            >. Licensed
-            <a
-              href="https://creativecommons.org/licenses/by/3.0/"
-              target="_blank"
-              rel="noopener"
-              >CC BY 3.0</a
-            >
-            as marked on the source video. Adaptation: audio extracted and MP3
-            encoded; video omitted.
-          </p>
-        </details>
-        <audio
-          id="background-audio"
-          src="assets/wulffden-chilled-beats.mp3"
-          preload="none"
-          loop
-        ></audio>
       </section>
       <div class="chapter-line">
         <span>01 — THE BENCHMARKS</span
@@ -338,6 +266,44 @@
             ><a href="#" class="back-top">Back to top ↑</a>
           </div>
         </div>
+        <details class="music-credits">
+          <summary>Music credits &amp; source</summary>
+          <p>
+            <a
+              href="https://www.youtube.com/watch?v=wdKbdiubuaA"
+              target="_blank"
+              rel="noopener"
+              >WULFF DEN x Chilled beats to relax and study to [Full
+              Playlist]</a
+            >, published by WULFF DEN Podcast. Music by
+            <a
+              href="https://www.youtube.com/@middleneck2617"
+              target="_blank"
+              rel="noopener"
+              >Middleneck</a
+            >,
+            <a
+              href="https://www.youtube.com/@vanilluxepavilion"
+              target="_blank"
+              rel="noopener"
+              >Vanilluxe Pavilion</a
+            >, and
+            <a
+              href="https://www.fiverr.com/zerocakes"
+              target="_blank"
+              rel="noopener"
+              >Zerocakes</a
+            >. Licensed
+            <a
+              href="https://creativecommons.org/licenses/by/3.0/"
+              target="_blank"
+              rel="noopener"
+              >CC BY 3.0</a
+            >
+            as marked on the source video. Adaptation: audio extracted and MP3
+            encoded; video omitted.
+          </p>
+        </details>
         <div class="footer-wordmark" aria-hidden="true">WULFF DEN</div>
         <div class="footer-bottom">
           <span>BENCHMARK EXPLORER / COMMUNITY EDITION</span
@@ -365,5 +331,12 @@
         each device; settings can differ.
       </p>
     </dialog>
+    <span id="music-status" class="music-sr-only" role="status"></span>
+    <audio
+      id="background-audio"
+      src="assets/wulffden-chilled-beats.mp3"
+      preload="none"
+      loop
+    ></audio>
   </body>
 </html>
