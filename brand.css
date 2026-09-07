@@ -222,9 +222,9 @@ main {
   pointer-events: none;
 }
 .wolf-display.easter-egg img {
-  border-radius: 12px;
+  border-radius: 50%;
   background: #101014;
-  object-fit: contain;
+  object-fit: cover;
 }
 .wolf-display.easter-egg .scanlines {
   opacity: 0;
