@@ -60,4 +60,6 @@ Decorative hero drift and signal bars, one-time section entrances, and short dia
 
 ## Optional background music
 
-The music button loads the official YouTube embed for [WULFF DEN x Chilled beats to relax and study to](https://www.youtube.com/watch?v=wdKbdiubuaA) only after a visitor clicks it. Volume starts at 50% each time the player is opened. The visible player loops the video, offers play/pause and volume controls, and stops when closed. Playback pauses when the tab is hidden. Browser autoplay policies may require a second Play click; mobile devices can control volume through hardware rather than the API. No audio is downloaded or hosted in this repository.
+An in-page audio player beneath the hero plays the full Wulff Den chilled-beats playlist at 50% default volume. It uses native HTML audio with no YouTube embed, loads media only on demand, supports seeking and pause/resume, and loops at the end. Playback begins only after a click. Mobile browsers may defer volume control to the device.
+
+The source video explicitly displays a Creative Commons Attribution reuse license. Full source, artist credits, license, and adaptation details are in `assets/MUSIC-LICENSE.md` and the player's expandable credits. The 128 kbps MP3 is approximately 49 MiB and is served by GitHub Pages. Keep `assets/wulffden-chilled-beats.mp3` and its license alongside the site when deploying.
