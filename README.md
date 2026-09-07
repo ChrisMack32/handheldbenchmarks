@@ -33,7 +33,7 @@ There are no runtime packages, build step, API keys, or third-party CORS proxies
 
 ## Hosting
 
-Serve `index.html`, `styles.css`, `brand.css`, `motion.css`, `motion.js`, `app.js`, `data.js`, and the `assets/` directory together on any static host. For GitHub Pages, choose **Deploy from a branch**, select `main`, and use `/ (root)`. All asset paths are relative, so repository subpaths work.
+Serve `index.html`, `styles.css`, `brand.css`, `motion.css`, `motion.js`, `music.css`, `music.js`, `app.js`, `data.js`, and the `assets/` directory together on any static host. For GitHub Pages, choose **Deploy from a branch**, select `main`, and use `/ (root)`. All asset paths are relative, so repository subpaths work.
 
 ## Data and interpretation
 
@@ -57,3 +57,7 @@ Original brand assets remain attributable to Wulff Den. This fork is labeled as 
 ## Motion
 
 Decorative hero drift and signal bars, one-time section entrances, and short dialog/hover transitions add restrained motion. The Pause motion control persists locally. System reduced-motion preferences disable animation; offscreen or backgrounded hero artwork pauses automatically. Results enter as they scroll into view, with a brief bar reveal. Leader accents, comparison cards, and the footer have ambient motion; numeric scores remain steady. Starred devices use amber selection rows, bars, badges, and jump shortcuts above the chart.
+
+## Optional background music
+
+The music button loads the official YouTube embed for [WULFF DEN x Chilled beats to relax and study to](https://www.youtube.com/watch?v=wdKbdiubuaA) only after a visitor clicks it. Volume starts at 25% each time the player is opened. The visible player loops the video, offers play/pause and volume controls, and stops when closed. Playback pauses when the tab is hidden. Browser autoplay policies may require a second Play click; mobile devices can control volume through hardware rather than the API. No audio is downloaded or hosted in this repository.

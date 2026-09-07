@@ -20,6 +20,8 @@
     <link rel="stylesheet" href="motion.css" />
     <script type="module" src="app.js"></script>
     <script type="module" src="motion.js"></script>
+    <script type="module" src="music.js"></script>
+    <link rel="stylesheet" href="music.css" />
   </head>
   <body>
     <a class="skip-link" href="#results">Skip to results</a>
@@ -282,5 +284,48 @@
         each device; settings can differ.
       </p>
     </dialog>
+    <button
+      id="music-launch"
+      class="music-launch"
+      aria-expanded="false"
+      aria-controls="music-panel"
+    >
+      ♫ Play background music
+    </button>
+    <section
+      id="music-panel"
+      class="music-panel"
+      aria-label="Background music player"
+      hidden
+    >
+      <div class="music-heading">
+        <div>
+          <strong>Wulff Den chilled beats</strong
+          ><small>A soundtrack for your comparisons.</small>
+        </div>
+        <button id="music-close" aria-label="Close and stop music">×</button>
+      </div>
+      <div id="music-mount"><div id="youtube-music"></div></div>
+      <div class="music-controls">
+        <button id="music-play" disabled>▶ Play</button
+        ><label for="music-volume">Volume</label
+        ><input
+          id="music-volume"
+          type="range"
+          min="0"
+          max="100"
+          value="25"
+          disabled
+        /><output id="music-volume-value" for="music-volume">25%</output>
+      </div>
+      <p id="music-status" class="music-status" role="status">Ready to play.</p>
+      <a
+        class="music-credit"
+        href="https://www.youtube.com/watch?v=wdKbdiubuaA"
+        target="_blank"
+        rel="noopener"
+        >Full playlist on YouTube ↗</a
+      >
+    </section>
   </body>
 </html>
