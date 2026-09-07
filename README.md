@@ -33,7 +33,7 @@ There are no runtime packages, build step, API keys, or third-party CORS proxies
 
 ## Hosting
 
-Serve `index.html`, `styles.css`, `app.js`, `data.js`, and `favicon.svg` together on any static host. For GitHub Pages, choose **Deploy from a branch**, select `main`, and use `/ (root)`. All asset paths are relative, so repository subpaths work.
+Serve `index.html`, `styles.css`, `brand.css`, `app.js`, `data.js`, and the `assets/` directory together on any static host. For GitHub Pages, choose **Deploy from a branch**, select `main`, and use `/ (root)`. All asset paths are relative, so repository subpaths work.
 
 ## Data and interpretation
 
@@ -44,3 +44,12 @@ The parser reads the average-score header and `GAME:` sections. Devices beneath 
 ## Verification
 
 `npm test` covers CSV edge cases, benchmark sorting, game configurations, reference-device defaults, unusual source keys, and failed/invalid fetch responses. The redesign was also checked in a browser with live data for device search, selection, highlighting, metrics, sorting, export, platform state, a mobile viewport, reduced motion, and recovery after simulated network failure.
+
+## Brand references and assets
+
+The community theme draws from Wulff Den's [YouTube channel](https://www.youtube.com/@WULFFDEN), [brand X profile](https://x.com/TheWulffDen), [Bob's X profile](https://x.com/BobWulff), and [website](https://www.thewulffden.com): cyan, the white wolf mark, grain/scanline texture, and bold typography. Cyan is the surrounding brand color; Windows blue and Android green remain platform indicators.
+
+- `assets/wulffden-mark.png`: original mark from the official website's Squarespace asset, https://static1.squarespace.com/static/5b481be371069951dcf6e271/t/67350014f2517215e72c0cd0/1731526676143/logo_ICON2022_Artboard+5+copy+17.png?format=500w
+- `assets/wulffden-channel-texture.jpg`: channel banner texture from the official YouTube channel, retrieved September 6, 2026. Source: https://yt3.googleusercontent.com/-p57WExE67j0-YM8OCW54BdgC0oMNA2sMnBlYxCBKGSfA4XnYzZJO31iIF4ku43_6He856k51A=w1138-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj
+
+Original brand assets remain attributable to Wulff Den. This fork is labeled as an independent community edition and does not claim endorsement.

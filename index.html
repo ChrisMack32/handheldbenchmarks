@@ -9,61 +9,89 @@
     />
     <meta name="theme-color" content="#111315" />
     <title>Handheld Benchmarks · Performance Explorer</title>
-    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="assets/wulffden-mark.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="brand.css" />
     <script type="module" src="app.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#results">Skip to results</a>
     <header class="site-header">
-      <a class="brand" href="./" aria-label="Handheld Benchmarks home"
-        ><span class="brand-icon" aria-hidden="true">▥</span> HANDHELD<span
-          class="brand-light"
-          >BENCHMARKS</span
+      <a class="brand" href="./" aria-label="Wulff Den benchmark explorer home"
+        ><img
+          src="assets/wulffden-mark.png"
+          alt=""
+          width="40"
+          height="40"
+        /><span class="brand-wordmark"
+          >WULFF DEN<span>BENCHMARK EXPLORER</span></span
         ></a
-      ><a
-        class="source-link"
-        href="https://github.com/bobwulff/handheldbenchmarks"
-        target="_blank"
-        rel="noopener"
-        >Original by Wulff Den <span aria-hidden="true">↗</span></a
       >
+      <nav aria-label="Main navigation">
+        <a href="#results" class="nav-active">Benchmarks</a
+        ><a href="https://www.thewulffden.com" target="_blank" rel="noopener"
+          >Wulff Den <span aria-hidden="true">↗</span></a
+        ><a
+          href="https://github.com/ChrisMack32/handheldbenchmarks"
+          target="_blank"
+          rel="noopener"
+          class="nav-source"
+          >Source <span aria-hidden="true">↗</span></a
+        >
+      </nav>
     </header>
     <main>
       <section class="hero">
-        <div>
-          <p class="eyebrow"><span></span> THE DEVICE PERFORMANCE EXPLORER</p>
+        <div class="hero-copy">
+          <p class="eyebrow">
+            <span></span> WULFF DEN DATA / COMMUNITY EXPLORER
+          </p>
           <h1>Real performance.<br /><em>Clear comparisons.</em></h1>
           <p class="intro">
-            From handhelds to phones, tablets, and PCs. Explore benchmark<br
-              class="desktop-break"
-            />
-            scores and game performance from Wulff Den’s testing.
+            Handhelds. Phones. Tablets. PCs.<br />Different hardware, put into
+            perspective with Wulff Den’s benchmark data.
           </p>
-          <a class="explore-link" href="#results"
-            >Explore the rankings <span aria-hidden="true">↘</span></a
-          >
-        </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="console">
-            <div class="dpad">✚</div>
-            <div class="console-screen">
-              <i></i><i></i><i></i><i></i><i></i>
-            </div>
-            <div class="console-buttons">●<br />● ●<br />●</div>
+          <div class="hero-actions">
+            <a class="explore-link" href="#results"
+              >Find your next comparison <span aria-hidden="true">↘</span></a
+            ><span class="hero-footnote"
+              >NO GUESSWORK.<br />JUST THE NUMBERS.</span
+            >
           </div>
-          <span class="art-caption"
-            >DIFFERENT DEVICES. ONE CLEARER PICTURE.</span
-          >
+        </div>
+        <div class="den-art" aria-hidden="true">
+          <div class="art-topline">
+            <span>WD / PERFORMANCE LAB</span><span>● SIGNAL ON</span>
+          </div>
+          <div class="wolf-display">
+            <img
+              src="assets/wulffden-mark.png"
+              alt=""
+              width="500"
+              height="500"
+            />
+            <div class="scanlines"></div>
+            <span class="crosshair crosshair-tl">+</span
+            ><span class="crosshair crosshair-br">+</span>
+          </div>
+          <div class="art-bottomline">
+            <span>HARDWARE IN.<br />NUMBERS OUT.</span
+            ><span class="signal-bars"
+              ><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span
+            ><span>DEVICE BENCHMARKS<br />▥ WULFF DEN</span>
+          </div>
         </div>
       </section>
+      <div class="chapter-line">
+        <span>01 — THE BENCHMARKS</span
+        ><span>CHOOSE YOUR PLATFORM. FIND YOUR FRONT-RUNNER.</span
+        ><a href="#about-data">About the data ↓</a>
+      </div>
       <div class="workspace-heading">
         <div class="platforms" role="group" aria-label="Platform">
           <button data-platform="windows" aria-pressed="true">
@@ -172,8 +200,8 @@
               ><span>Source: Wulff Den / Google Sheets ↗</span>
             </div>
           </div>
-          <p class="method-note">
-            About these numbers
+          <p class="method-note" id="about-data">
+            Behind the numbers.
             <span
               >Scores reflect the configurations in the source sheet. Game
               settings and resolutions can differ between devices; these results
@@ -182,13 +210,40 @@
           </p>
         </section>
       </div>
-      <footer>
-        <span
-          >HANDHELD BENCHMARKS <span class="footer-divider">/</span> Independent
-          community explorer</span
-        ><a id="sheet-link" target="_blank" rel="noopener"
-          >View source spreadsheet ↗</a
-        >
+      <footer class="den-footer">
+        <div class="footer-top">
+          <div>
+            <p class="eyebrow">THE PEOPLE BEHIND THE DATA</p>
+            <h2>More than a score.</h2>
+            <p>
+              Get the context, the testing, and the opinions<br />from Wulff
+              Den.
+            </p>
+            <a
+              href="https://www.youtube.com/@WULFFDEN"
+              target="_blank"
+              rel="noopener"
+              >Watch Wulff Den <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="footer-links">
+            <a id="sheet-link" target="_blank" rel="noopener"
+              >Source spreadsheet ↗</a
+            ><a
+              href="https://github.com/bobwulff/handheldbenchmarks"
+              target="_blank"
+              rel="noopener"
+              >Original project ↗</a
+            ><a href="https://x.com/BobWulff" target="_blank" rel="noopener"
+              >Bob on X ↗</a
+            ><a href="#" class="back-top">Back to top ↑</a>
+          </div>
+        </div>
+        <div class="footer-wordmark" aria-hidden="true">WULFF DEN</div>
+        <div class="footer-bottom">
+          <span>BENCHMARK EXPLORER / COMMUNITY EDITION</span
+          ><span>Independent fork. Data and original mark by Wulff Den.</span>
+        </div>
       </footer>
     </main>
     <dialog id="comparison" aria-labelledby="comparison-title">
