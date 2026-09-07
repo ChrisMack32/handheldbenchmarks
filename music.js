@@ -51,8 +51,8 @@ launch.addEventListener("click", async () => {
   launch.setAttribute("aria-expanded", "true");
   toggle.disabled = true;
   slider.disabled = true;
-  slider.value = 25;
-  document.getElementById("music-volume-value").value = "25%";
+  slider.value = 50;
+  document.getElementById("music-volume-value").value = "50%";
   status.textContent = "Connecting to YouTube…";
   document.getElementById("music-close").focus();
   try {
@@ -72,7 +72,7 @@ launch.addEventListener("click", async () => {
         onReady(event) {
           if (run !== generation) return;
           ready = true;
-          event.target.setVolume(25);
+          event.target.setVolume(50);
           toggle.disabled = false;
           slider.disabled = false;
           event.target.getIframe().title =
