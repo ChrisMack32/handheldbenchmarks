@@ -1,1037 +1,179 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Handheld Gaming Benchmarks — Wulff Den</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #000000;
-    --surface: #161922;
-    --surface2: #1e222d;
-    --border: #2a2f3d;
-    --win-accent: #00c2ff;
-    --win-glow: rgba(0,194,255,0.18);
-    --android-accent: #3ddc84;
-    --android-glow: rgba(61,220,132,0.18);
-    --text: #e8eaf0;
-    --text-muted: #6b7280;
-    --text-dim: #9ca3af;
-    --highlight: #ff9f1c;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Barlow', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  body::before { display: none; }
-
-  /* ── Film grain canvas ───────────────────────────────────────────────────── */
-  #grain {
-    position: fixed; inset: 0; z-index: 9999;
-    pointer-events: none;
-    opacity: 0.025;
-    width: 100%; height: 100%;
-  }
-
-  /* ── Bloom / pro-mist effect ────────────────────────────────────────────── */
-  /* Subtle brightness lift + slightly raised blacks = pro-mist look */
-  .bloom-wrap {
-    filter: brightness(1.06) contrast(0.94);
-  }
-  /* The bloom glow: a div rendered ABOVE content, blurring what's beneath it */
-  #bloom-overlay {
-    position: fixed; inset: 0; z-index: 9998;
-    pointer-events: none;
-    backdrop-filter: blur(18px) brightness(2);
-    -webkit-backdrop-filter: blur(18px) brightness(2);
-    opacity: 0.22;
-    mix-blend-mode: screen;
-  }
-
-  .wrapper {
-    position: relative; z-index: 1;
-    max-width: 1300px; margin: 0 auto;
-    padding: 40px 24px 80px;
-  }
-
-  header { margin-bottom: 40px; }
-  .header-eyebrow {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 4px; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 8px;
-  }
-  h1 {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: clamp(32px, 5vw, 56px);
-    font-weight: 900; text-transform: uppercase; line-height: 1; color: #fff;
-  }
-  h1 span { transition: color 0.4s; color: var(--win-accent); }
-  .header-sub { font-size: 14px; color: var(--text-muted); margin-top: 10px; }
-
-  /* ── Tabs ─────────────────────────────────────────────────────────────────── */
-  .tab-bar {
-    display: flex; gap: 4px; margin-bottom: 32px;
-    background: var(--surface); padding: 4px;
-    border-radius: 10px; border: 1px solid var(--border);
-    width: fit-content;
-  }
-  .tab-btn {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 15px; font-weight: 800; letter-spacing: 2px;
-    text-transform: uppercase; padding: 10px 28px;
-    border: none; border-radius: 7px; cursor: pointer;
-    background: transparent; color: var(--text-muted); transition: all 0.25s;
-  }
-  .tab-btn.win-tab.active,     .tab-btn.win-tab:hover     { color: var(--win-accent);     background: var(--win-glow); }
-  .tab-btn.android-tab.active, .tab-btn.android-tab:hover { color: var(--android-accent); background: var(--android-glow); }
-
-  /* ── Controls ──────────────────────────────────────────────────────────────── */
-  .controls-row { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 24px; margin-bottom: 28px; }
-  .control-group { display: flex; flex-direction: column; }
-  .section-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 3px; text-transform: uppercase;
-    color: var(--text-muted); margin-bottom: 8px;
-  }
-  .device-selector { display: flex; flex-wrap: wrap; gap: 6px; max-width: 1100px; }
-  .device-chip {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 12px; font-weight: 700; letter-spacing: 0.5px;
-    padding: 5px 12px; border-radius: 20px;
-    border: 1px solid var(--border); background: var(--surface);
-    color: var(--text-dim); cursor: pointer;
-    transition: all 0.18s; user-select: none; position: relative;
-  }
-  .device-chip.highlighted::after {
-    content: '★'; font-size: 9px;
-    position: absolute; top: -4px; right: -3px;
-    color: var(--highlight); text-shadow: 0 0 6px var(--highlight);
-  }
-  #tab-windows .device-chip.active  { background: var(--win-accent);     border-color: var(--win-accent);     color: #000; }
-  #tab-android .device-chip.active  { background: var(--android-accent); border-color: var(--android-accent); color: #000; }
-  .device-chip.highlighted { border-color: var(--highlight) !important; box-shadow: 0 0 8px rgba(255,159,28,0.4); }
-
-  .selector-actions { display: flex; gap: 8px; margin-top: 8px; }
-  .action-btn {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-    padding: 4px 12px; border: 1px solid var(--border); border-radius: 4px;
-    background: transparent; color: var(--text-muted); cursor: pointer; transition: all 0.18s;
-  }
-  #tab-windows .action-btn:hover { border-color: var(--win-accent);     color: var(--win-accent); }
-  #tab-android .action-btn:hover { border-color: var(--android-accent); color: var(--android-accent); }
-  .highlight-hint {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
-    color: var(--text-muted); margin-top: 10px;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .highlight-hint span { color: var(--highlight); text-shadow: 0 0 6px rgba(255,159,28,0.5); }
-
-  /* ── Chart panel ───────────────────────────────────────────────────────────── */
-  .chart-panel {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 36px 32px 28px;
-    position: relative; overflow: hidden;
-  }
-  .chart-panel::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  }
-  .win-panel::before     { background: linear-gradient(90deg, var(--win-accent),     transparent); }
-  .android-panel::before { background: linear-gradient(90deg, var(--android-accent), transparent); }
-
-  .chart-heading {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 22px; font-weight: 900; text-transform: uppercase;
-    letter-spacing: 1px; color: #fff; margin-bottom: 4px;
-  }
-  .chart-subheading { font-size: 12px; color: var(--text-muted); margin-bottom: 32px; }
-
-  /* ── Bar rows ──────────────────────────────────────────────────────────────── */
-  .bar-row {
-    display: grid;
-    grid-template-columns: 220px 1fr;
-    align-items: center; gap: 14px; margin-bottom: 11px;
-    opacity: 0; transform: translateX(-12px);
-    animation: rowIn 0.4s ease forwards;
-    transition: opacity 0.2s;
-    contain: layout style;
-    will-change: opacity, transform;
-  }
-  @keyframes rowIn { to { opacity: 1; transform: translateX(0); } }
-
-  .bar-row.dimmed        { opacity: 0.28 !important; }
-  .bar-row.is-highlighted { opacity: 1  !important; }
-
-  .bar-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px; font-weight: 700; color: var(--text-dim);
-    text-align: right; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; transition: color 0.2s;
-  }
-  .bar-row.is-highlighted .bar-label {
-    color: var(--highlight);
-    text-shadow: 0 0 12px rgba(255,159,28,0.6);
-  }
-
-  .bar-track {
-    height: 30px; background: var(--surface2);
-    border-radius: 5px;
-    /* NO overflow:hidden — lets the value sit at the very tip */
-    position: relative;
-  }
-
-  .bar-fill {
-    height: 100%; border-radius: 5px;
-    width: 0%;
-    transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-    will-change: width;
-    transform: translateZ(0);
-    /* clip the colored bar itself but not its children */
-    overflow: visible;
-  }
-  /* right-edge highlight line */
-  .bar-fill::after {
-    content: ''; position: absolute;
-    top: 0; right: 0; width: 2px; height: 100%;
-    background: rgba(255,255,255,0.3); border-radius: 0 5px 5px 0;
-  }
-
-  /* The value rides on the inside-right tip of the bar */
-  .bar-value {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 14px; font-weight: 800; letter-spacing: 0.5px;
-    color: rgba(0,0,0,0.8);
-    position: absolute;
-    right: 8px;         /* padding from the right edge of bar-fill */
-    top: 50%;
-    transform: translateY(-50%);
-    white-space: nowrap;
-    pointer-events: none;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
-    transition: text-shadow 0.2s;
-  }
-  .bar-row.is-highlighted .bar-value {
-    text-shadow: 0 0 10px rgba(255,159,28,0.5);
-  }
-
-  /* ── Status / loading ──────────────────────────────────────────────────────── */
-  .status-msg {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; padding: 80px 20px; gap: 16px;
-    color: var(--text-muted); font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px; letter-spacing: 2px; text-transform: uppercase;
-    text-align: center; line-height: 1.8;
-  }
-  .spinner {
-    width: 32px; height: 32px; border: 2px solid var(--border);
-    border-radius: 50%; animation: spin 0.8s linear infinite;
-  }
-  .spinner.win     { border-top-color: var(--win-accent); }
-  .spinner.android { border-top-color: var(--android-accent); }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-
-  /* ── Floating play button ──────────────────────────────────────────────────── */
-  #play-btn {
-    position: fixed; bottom: 32px; right: 32px; z-index: 10000;
-    width: 64px; height: 64px; border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.15);
-    background: rgba(12,14,20,0.88);
-    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.6);
-  }
-  #play-btn:hover {
-    transform: scale(1.1); border-color: rgba(255,255,255,0.35);
-    box-shadow: 0 6px 32px rgba(0,0,0,0.6), 0 0 22px var(--play-glow, rgba(0,194,255,0.4));
-  }
-  #play-btn:active { transform: scale(0.95); }
-  #play-btn .btn-icon { width: 26px; height: 26px; fill: #fff; transition: fill 0.2s; pointer-events: none; }
-  #play-btn:hover .btn-icon { fill: var(--play-color, var(--win-accent)); }
-  #play-btn .btn-label {
-    position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
-    color: var(--text-muted); white-space: nowrap; pointer-events: none; transition: color 0.2s;
-  }
-  #play-btn:hover .btn-label { color: var(--play-color, var(--win-accent)); }
-  #play-btn.playing {
-    border-color: var(--play-color, var(--win-accent));
-    animation: playPulse 0.7s ease infinite alternate;
-  }
-  @keyframes playPulse {
-    from { box-shadow: 0 0 10px var(--play-glow, rgba(0,194,255,0.3)); }
-    to   { box-shadow: 0 0 30px var(--play-glow, rgba(0,194,255,0.7)); }
-  }
-
-  @media (max-width: 640px) {
-    .bar-row { grid-template-columns: 130px 1fr; }
-    .chart-panel { padding: 20px 14px 16px; }
-    #play-btn { width: 52px; height: 52px; bottom: 20px; right: 20px; }
-    #play-btn .btn-label { display: none; }
-  }
-
-  /* ── Dataset selector ─────────────────────────────────────────────────────── */
-  .dataset-row {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 24px; flex-wrap: wrap;
-  }
-  .dataset-label {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 11px; font-weight: 700; letter-spacing: 3px;
-    text-transform: uppercase; color: var(--text-muted);
-    white-space: nowrap;
-  }
-  .styled-select {
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
-    padding: 7px 32px 7px 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    cursor: pointer;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    min-width: 200px;
-    transition: border-color 0.18s;
-  }
-  .styled-select:focus { outline: none; }
-  #tab-windows .styled-select:focus,
-  #tab-windows .styled-select:hover { border-color: var(--win-accent); }
-  #tab-android .styled-select:focus,
-  #tab-android .styled-select:hover { border-color: var(--android-accent); }
-  .styled-select option { background: #1e222d; color: var(--text); }
-
-  /* grayed-out chips for devices not in current game */
-  .device-chip.unavailable {
-    opacity: 0.25;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-</style>
-</head>
-<body>
-
-<!-- ── Bloom overlay ─────────────────────────────────────────────────────────── -->
-<div id="bloom-overlay"></div>
-
-<!-- ── Film grain canvas ─────────────────────────────────────────────────────── -->
-<canvas id="grain"></canvas>
-
-<!-- grain is now pure CSS, no canvas needed -->
-
-<div class="bloom-wrap">
-<div class="wrapper">
-  <header>
-    <div class="header-eyebrow">Wulff Den — 3DMark Performance Tests</div>
-    <h1>Handheld Gaming <span id="header-accent">Benchmarks</span></h1>
-    <p class="header-sub">Live data from Google Sheets · Time Spy Average · Select devices to compare</p>
-  </header>
-
-  <div class="tab-bar">
-    <button class="tab-btn win-tab active" onclick="switchTab('windows')">⊞ Windows</button>
-    <button class="tab-btn android-tab" onclick="switchTab('android')">◎ Android</button>
-  </div>
-
-  <!-- Windows Tab -->
-  <div class="tab-content active" id="tab-windows">
-    <!-- Dataset selector -->
-    <div class="dataset-row" id="win-dataset-row">
-      <span class="dataset-label">Dataset</span>
-      <select class="styled-select" id="win-game-select" onchange="onDatasetChange('windows')">
-        <option value="__timespy__">Time Spy Average</option>
-      </select>
-      <select class="styled-select" id="win-metric-select" onchange="renderChart('windows')" style="display:none"></select>
-    </div>
-    <div class="controls-row">
-      <div class="control-group">
-        <div class="section-label">Filter Devices</div>
-        <div class="device-selector" id="win-chips"></div>
-        <div class="selector-actions">
-          <button class="action-btn" onclick="selectAll('windows')">All</button>
-          <button class="action-btn" onclick="selectNone('windows')">None</button>
-          <button class="action-btn" onclick="clearHighlights('windows')">Clear Highlights</button>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Explore Wulff Den's handheld gaming benchmarks. Filter devices, compare scores, and explore real game performance."
+    />
+    <meta name="theme-color" content="#111315" />
+    <title>Handheld Benchmarks · Performance Explorer</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#results">Skip to results</a>
+    <header class="site-header">
+      <a class="brand" href="./" aria-label="Handheld Benchmarks home"
+        ><span class="brand-icon" aria-hidden="true">▥</span> HANDHELD<span
+          class="brand-light"
+          >BENCHMARKS</span
+        ></a
+      ><a
+        class="source-link"
+        href="https://github.com/bobwulff/handheldbenchmarks"
+        target="_blank"
+        rel="noopener"
+        >Original by Wulff Den <span aria-hidden="true">↗</span></a
+      >
+    </header>
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow"><span></span> THE HANDHELD PERFORMANCE EXPLORER</p>
+          <h1>Small devices.<br /><em>Big comparisons.</em></h1>
+          <p class="intro">
+            Find out how your handheld stacks up. Explore benchmark<br
+              class="desktop-break"
+            />
+            scores and game performance from Wulff Den’s testing.
+          </p>
         </div>
-        <div class="highlight-hint"><span>★</span> Right-click a device to highlight it</div>
-      </div>
-    </div>
-    <div class="chart-panel win-panel" id="win-chart-panel">
-      <div class="status-msg" id="win-loading"><div class="spinner win"></div>Loading benchmark data…</div>
-    </div>
-  </div>
-
-  <!-- Android Tab -->
-  <div class="tab-content" id="tab-android">
-    <!-- Dataset selector -->
-    <div class="dataset-row" id="android-dataset-row">
-      <span class="dataset-label">Dataset</span>
-      <select class="styled-select" id="android-game-select" onchange="onDatasetChange('android')">
-        <option value="__timespy__">Time Spy Average</option>
-      </select>
-      <select class="styled-select" id="android-metric-select" onchange="renderChart('android')" style="display:none"></select>
-    </div>
-    <div class="controls-row">
-      <div class="control-group">
-        <div class="section-label">Filter Devices</div>
-        <div class="device-selector" id="android-chips"></div>
-        <div class="selector-actions">
-          <button class="action-btn" onclick="selectAll('android')">All</button>
-          <button class="action-btn" onclick="selectNone('android')">None</button>
-          <button class="action-btn" onclick="clearHighlights('android')">Clear Highlights</button>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="console">
+            <div class="dpad">✚</div>
+            <div class="console-screen">
+              <i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div class="console-buttons">●<br />● ●<br />●</div>
+          </div>
+          <span class="art-caption"
+            >PORTABLE HARDWARE. MEASURABLE PERFORMANCE.</span
+          >
         </div>
-        <div class="highlight-hint"><span>★</span> Right-click a device to highlight it</div>
+      </section>
+      <div class="workspace-heading">
+        <div class="platforms" role="group" aria-label="Platform">
+          <button data-platform="windows" aria-pressed="true">
+            <span aria-hidden="true">⊞</span> Windows</button
+          ><button data-platform="android" aria-pressed="false">
+            <span aria-hidden="true">◎</span> Android
+          </button>
+        </div>
+        <span id="connection" role="status">Connecting to source…</span>
       </div>
-    </div>
-    <div class="chart-panel android-panel" id="android-chart-panel">
-      <div class="status-msg" id="android-loading"><div class="spinner android"></div>Loading benchmark data…</div>
-    </div>
-  </div>
-</div>
-</div><!-- end bloom-wrap -->
-
-<!-- ── Floating play button ───────────────────────────────────────────────────── -->
-<button id="play-btn" onclick="replayAnimation()" title="Replay animation">
-  <svg class="btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M8 5v14l11-7z"/>
-  </svg>
-  <span class="btn-label">Replay</span>
-</button>
-
-<script>
-// ── Sheet URLs ──────────────────────────────────────────────────────────────
-const PUB_BASE    = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQBAd926glCKt96V0vcwLhk2MX9y-skPq3v2kO0HvBKXeP6Oxgbwv94rNSKcrGYGl11oSpQ5NmrqPbY/pub';
-const WIN_URL     = PUB_BASE + '?gid=0&single=true&output=csv';
-const ANDROID_URL = PUB_BASE + '?gid=1032283982&single=true&output=csv';
-
-// ── State ───────────────────────────────────────────────────────────────────
-let winData = null, androidData = null;
-let winSelected      = new Set(), androidSelected      = new Set();
-let winHighlighted   = new Set(), androidHighlighted   = new Set();
-let currentPlatform  = 'windows';
-// Game FPS data: { gameName: { metrics: ['Avg FPS', ...], devices: { DevName: { 'Avg FPS': 32.1, ... } } } }
-let winGames = {}, androidGames = {};
-let winNotReally = new Set(), androidNotReally = new Set();
-
-// ── Colors ──────────────────────────────────────────────────────────────────
-const WIN_COLORS = [
-  '#00c2ff','#33cfff','#0099d6','#66d9ff','#0077b3','#00eaff','#4dd9f5',
-  '#007fa8','#00b3e6','#aaeeff','#0055aa','#3399cc','#1188bb','#66bbdd',
-  '#0044aa','#22aadd','#88ccee','#3377aa','#55aacc','#99ddee',
-];
-const ANDROID_COLORS = [
-  '#3ddc84','#5de69a','#29b36a','#a3f0c4','#1f9956','#6ef0a8','#82e8b6',
-  '#138847','#0d6633','#aaedcc','#3bc47a','#55d890','#27a060','#1b8049',
-  '#7ae8ae','#107040','#44cc80','#9ef2c8','#2aaa68','#66dda0',
-];
-const HIGHLIGHT_COLOR = '#ff9f1c';
-
-// ── Film grain (canvas, throttled to ~15fps for performance) ─────────────────
-(function initGrain() {
-  const canvas = document.getElementById('grain');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  let w, h, lastTime = 0;
-  const FPS = 15; // low enough to be smooth on weak hardware
-  const INTERVAL = 1000 / FPS;
-
-  // Render at half resolution and CSS-scale up — saves ~75% of pixel writes
-  const SCALE = 0.75;
-
-  function resize() {
-    w = canvas.width  = Math.floor(window.innerWidth  * SCALE);
-    h = canvas.height = Math.floor(window.innerHeight * SCALE);
-    canvas.style.width  = window.innerWidth  + 'px';
-    canvas.style.height = window.innerHeight + 'px';
-  }
-  window.addEventListener('resize', () => { clearTimeout(resize._t); resize._t = setTimeout(resize, 200); });
-  resize();
-
-  function drawGrain(now) {
-    requestAnimationFrame(drawGrain);
-    if (now - lastTime < INTERVAL) return; // skip frame
-    lastTime = now;
-    const img = ctx.createImageData(w, h);
-    const d   = img.data;
-    // Use typed array tricks for speed
-    for (let i = 0; i < d.length; i += 4) {
-      const v = (Math.random() * 255) | 0;
-      d[i] = d[i+1] = d[i+2] = v;
-      d[i+3] = 255;
-    }
-    ctx.putImageData(img, 0, 0);
-  }
-  requestAnimationFrame(drawGrain);
-})();
-
-// ── Fetch with proxy fallback ────────────────────────────────────────────────
-async function fetchCSV(url) {
-  // Ordered by reliability. corsproxy.io now blocks non-localhost, so it's last.
-  const proxies = [
-    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
-    u => 'https://cors.x2u.in/' + u,
-    u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u),
-    u => 'https://proxy.cors.sh/' + u,
-    u => 'https://corsproxy.io/?url=' + encodeURIComponent(u),
-    u => u,
-  ];
-
-  const errors = [];
-  for (const make of proxies) {
-    try {
-      const proxyUrl = make(url);
-      const resp = await Promise.race([
-        fetch(proxyUrl),
-        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))
-      ]);
-      if (!resp.ok) { errors.push(`${proxyUrl.split('/')[2]}: HTTP ${resp.status}`); continue; }
-      const text = await resp.text();
-      // Reject HTML responses (error pages) or empty
-      if (!text || text.trim().length < 10) { errors.push(`${proxyUrl.split('/')[2]}: empty`); continue; }
-      if (text.trim().startsWith('<')) { errors.push(`${proxyUrl.split('/')[2]}: got HTML`); continue; }
-      // Reject JSON wrapper responses that aren't raw CSV
-      if (text.trim().startsWith('{') && !text.includes(',')) { errors.push(`${proxyUrl.split('/')[2]}: got JSON`); continue; }
-      return text;
-    } catch(e) {
-      errors.push(`${make(url).split('/')[2]}: ${e.message}`);
-    }
-  }
-  throw new Error('All proxies failed:\n' + errors.join('\n'));
-}
-
-// ── CSV parser ───────────────────────────────────────────────────────────────
-function parseCSV(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  return lines.map(line => {
-    const cells = []; let inQ = false, cur = '';
-    for (const c of line) {
-      if (c === '"') { inQ = !inQ; }
-      else if (c === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
-      else cur += c;
-    }
-    cells.push(cur.trim());
-    return cells;
-  });
-}
-
-// ── Data parser ──────────────────────────────────────────────────────────────
-// ACTUAL sheet structure (confirmed from screenshot):
-//
-// TIME SPY SECTION (rows 1 to PC Game Anecdotal marker):
-//   Row 0:  DEVICE | OS/SoC | RAM | Android Ver | Test1 | Test2 | Test3 | Time Spy Average | ...
-//   Row 1+: DeviceName | OS | ... | score
-//   "NOT REALLY HANDHELDS" = section label row, skip label but include devices beneath
-//
-// GAME SECTION:
-//   GAME: row:   col0="GAME: Marvel Rivals" | col1="OS" | col2="Resolution" | col3="Highest Avg" | col4="Lowest" | ...
-//   Device rows: col0=DeviceName | col1=OS value | col2=Resolution value | col3=FPS | col4=FPS | ...
-//   Next GAME: row starts the next game
-//
-// KEY INSIGHT: metric names are IN THE GAME: ROW ITSELF (cols 3+), NOT in row 0!
-function parseData(rows) {
-  if (!rows || rows.length < 2) throw new Error('Not enough rows in CSV.');
-  const header = rows[0].map(h => h.trim());
-
-  // ── Find Time Spy Average column in main header row 0 ─────────────────────
-  let avgCol = -1;
-  for (let c = 0; c < header.length; c++) {
-    const h = header[c].toLowerCase();
-    if (h.includes('time spy') && h.includes('average')) { avgCol = c; break; }
-  }
-  if (avgCol === -1) {
-    for (let c = 0; c < header.length; c++) {
-      if (header[c].toLowerCase().includes('time spy')) { avgCol = c; break; }
-    }
-  }
-
-  // ── Parse Time Spy entries ─────────────────────────────────────────────────
-  // Read all device rows until we hit a GAME: row or PC Game Anecdotal marker.
-  // Track which devices appear under "NOT REALLY HANDHELDS" so we can deselect them by default.
-  const timespy = [];
-  const notReallyHandhelds = new Set();
-  let inNotReally = false;
-  if (avgCol !== -1) {
-    for (let r = 1; r < rows.length; r++) {
-      const row   = rows[r];
-      const label = (row[0] || '').trim();
-      if (!label) continue;
-      if (label.toUpperCase().startsWith('GAME:')) break;
-      if (label.toLowerCase().includes('pc game anecdotal') ||
-          label.toLowerCase().includes('no frame gen')) break;
-      if (label.toLowerCase().includes('not really')) {
-        inNotReally = true; // everything after this is "not really a handheld"
-        continue;
-      }
-      const score = parseFloat((row[avgCol] || '').replace(/,/g, '').trim());
-      if (!isNaN(score) && score > 0) {
-        timespy.push({ name: label, score });
-        if (inNotReally) notReallyHandhelds.add(label);
-      }
-    }
-    timespy.sort((a, b) => b.score - a.score);
-  }
-
-  // ── Parse GAME sections ────────────────────────────────────────────────────
-  // The GAME: row itself contains the column headers for that game:
-  //   col 0 = "GAME: Marvel Rivals (practice range)"
-  //   col 1 = "OS"            (header for OS column)
-  //   col 2 = "Resolution"    (header for resolution column — we skip its values)
-  //   col 3 = "Highsest Avg"  (first FPS metric)
-  //   col 4 = "Lowest"        (second FPS metric)
-  //   col 5 = "Performance Test" (third FPS metric, if present)
-  //
-  // Device rows immediately follow:
-  //   col 0 = "Steam Deck OLED"
-  //   col 1 = "SteamOS"
-  //   col 2 = "1280x800p (FSR, Performance)"
-  //   col 3 = 33
-  //   col 4 = 19
-  const games = {};
-  let currentGame     = null;
-  let gameMetricCols  = []; // [{name, col}] — set fresh for each GAME: row
-
-  for (let r = 1; r < rows.length; r++) {
-    const row   = rows[r];
-    const label = (row[0] || '').trim();
-    if (!label) continue;
-
-    if (label.toUpperCase().startsWith('GAME:')) {
-      // Extract game name
-      currentGame = label.replace(/^GAME:\s*/i, '').trim();
-
-      // Read metric column names from THIS row (cols after Resolution col)
-      // Find "Resolution" in this row first
-      gameMetricCols = [];
-      let resColInGame = -1;
-      for (let c = 1; c < row.length; c++) {
-        if ((row[c] || '').trim().toLowerCase().includes('resolution')) {
-          resColInGame = c; break;
-        }
-      }
-      if (resColInGame !== -1) {
-        // Metric cols are everything to the right of Resolution in this GAME: row
-        for (let c = resColInGame + 1; c < row.length; c++) {
-          const name = (row[c] || '').trim();
-          if (name) gameMetricCols.push({ name, col: c });
-        }
-      } else {
-        // No Resolution col found — grab cols 3+ as metrics (skip Device=0, OS=1, Resolution=2)
-        for (let c = 3; c < row.length; c++) {
-          const name = (row[c] || '').trim();
-          if (name) gameMetricCols.push({ name, col: c });
-        }
-      }
-
-      games[currentGame] = { metrics: gameMetricCols.map(m => m.name), devices: {} };
-      continue;
-    }
-
-    if (currentGame) {
-      // Skip non-device label rows
-      if (label.toLowerCase().includes('not really') ||
-          label.toLowerCase().includes('pc game') ||
-          label.toLowerCase().includes('no frame gen')) continue;
-
-      // Device row — col 0 = name, col 1 = OS
-      const baseName   = label;
-      const os         = (row[1] || '').trim();
-      const deviceName = os ? `${baseName} (${os})` : baseName;
-
-      // Debug: log every device row and what values we find
-      const debugVals = gameMetricCols.map(({name, col}) => `${name}[col${col}]="${row[col] || ''}"`);
-      console.log(`  [game row] "${deviceName}" | metricCols: ${debugVals.join(', ')} | full row:`, row.slice(0, 8));
-
-      gameMetricCols.forEach(({ name, col }) => {
-        const raw = (row[col] || '').replace(/,/g, '').trim();
-        const val = parseFloat(raw);
-        if (!isNaN(val) && val > 0) {
-          if (!games[currentGame].devices[deviceName]) games[currentGame].devices[deviceName] = {};
-          games[currentGame].devices[deviceName][name] = val;
-        }
-      });
-    }
-  }
-
-  // Debug output
-  console.log('[parseData] Time Spy entries:', timespy.length);
-  console.log('[parseData] Games:', Object.keys(games));
-  Object.entries(games).forEach(([g, d]) => {
-    console.log(`  "${g}": metrics=[${d.metrics.join(', ')}], devices=${Object.keys(d.devices).length}`);
-  });
-
-  if (timespy.length === 0 && Object.keys(games).length === 0) {
-    throw new Error('No data found. Row 0 headers: ' + header.slice(0, 12).join(' | '));
-  }
-
-  return { timespy, games, notReallyHandhelds };
-}
-
-// ── Chips ─────────────────────────────────────────────────────────────────────
-// In Time Spy mode: chips come from winData/androidData (Time Spy device list)
-// In Game mode: chips come from gameData.devices (includes "Device (OS)" names)
-function renderChips(platform, gameData = null) {
-  const tsData      = platform === 'windows' ? winData        : androidData;
-  const selected    = platform === 'windows' ? winSelected    : androidSelected;
-  const highlighted = platform === 'windows' ? winHighlighted : androidHighlighted;
-  const el          = document.getElementById(platform === 'windows' ? 'win-chips' : 'android-chips');
-  el.innerHTML      = '';
-
-  // Determine which device list to show
-  const deviceList = gameData
-    ? Object.keys(gameData.devices).sort()   // game mode: use game's device list
-    : tsData.map(d => d.name);               // time spy mode: use time spy list
-
-  deviceList.forEach(name => {
-    const chip = document.createElement('button');
-    let cls = 'device-chip';
-    if (selected.has(name))    cls += ' active';
-    if (highlighted.has(name)) cls += ' highlighted';
-    chip.className   = cls;
-    chip.textContent = name;
-    chip.title       = 'Left-click to show/hide · Right-click to highlight';
-    chip.onclick = (e) => {
-      e.preventDefault();
-      selected.has(name) ? selected.delete(name) : selected.add(name);
-      renderChips(platform, gameData); renderChart(platform);
-    };
-    chip.oncontextmenu = (e) => {
-      e.preventDefault();
-      if (!highlighted.has(name)) { highlighted.add(name); selected.add(name); }
-      else { highlighted.delete(name); }
-      renderChips(platform, gameData); renderChart(platform);
-    };
-    el.appendChild(chip);
-  });
-}
-
-function selectAll(p) {
-  const gamesSel = document.getElementById(p === 'windows' ? 'win-game-select' : 'android-game-select');
-  const games    = p === 'windows' ? winGames : androidGames;
-  const sel      = p === 'windows' ? winSelected : androidSelected;
-  const selectedGame = gamesSel ? gamesSel.value : '__timespy__';
-
-  if (selectedGame !== '__timespy__' && games[selectedGame]) {
-    Object.keys(games[selectedGame].devices).forEach(n => sel.add(n));
-    renderChips(p, games[selectedGame]); renderChart(p);
-  } else {
-    const data = p === 'windows' ? winData : androidData;
-    data.forEach(({ name }) => sel.add(name));
-    renderChips(p); renderChart(p);
-  }
-}
-function selectNone(p) {
-  (p === 'windows' ? winSelected : androidSelected).clear();
-  const gamesSel = document.getElementById(p === 'windows' ? 'win-game-select' : 'android-game-select');
-  const games    = p === 'windows' ? winGames : androidGames;
-  const selectedGame = gamesSel ? gamesSel.value : '__timespy__';
-  const gameData = selectedGame !== '__timespy__' ? games[selectedGame] : null;
-  renderChips(p, gameData); renderChart(p);
-}
-function clearHighlights(p) {
-  (p === 'windows' ? winHighlighted : androidHighlighted).clear();
-  const gamesSel = document.getElementById(p === 'windows' ? 'win-game-select' : 'android-game-select');
-  const games    = p === 'windows' ? winGames : androidGames;
-  const selectedGame = gamesSel ? gamesSel.value : '__timespy__';
-  const gameData = selectedGame !== '__timespy__' ? games[selectedGame] : null;
-  renderChips(p, gameData); renderChart(p);
-}
-
-// ── Number counter animation ─────────────────────────────────────────────────
-function animateCounters(panel, duration = 950) {
-  panel.querySelectorAll('.bar-value[data-target]').forEach(el => {
-    const target   = parseFloat(el.dataset.target);
-    const decimals = parseInt(el.dataset.decimal || '0', 10);
-    const start    = performance.now();
-    function tick(now) {
-      const t    = Math.min((now - start) / duration, 1);
-      const ease = 1 - Math.pow(1 - t, 3);
-      const val  = ease * target;
-      el.textContent = decimals > 0 ? val.toFixed(decimals) : Math.round(val).toLocaleString();
-      if (t < 1) requestAnimationFrame(tick);
-      else el.textContent = decimals > 0 ? target.toFixed(decimals) : Math.round(target).toLocaleString();
-    }
-    requestAnimationFrame(tick);
-  });
-}
-
-// ── Chart ─────────────────────────────────────────────────────────────────────
-function renderChart(platform, animate = false) {
-  // Check if we are in game mode
-  const gamesSel    = document.getElementById(platform === 'windows' ? 'win-game-select'   : 'android-game-select');
-  const metricSel   = document.getElementById(platform === 'windows' ? 'win-metric-select' : 'android-metric-select');
-  const games       = platform === 'windows' ? winGames : androidGames;
-  const selectedGame = gamesSel ? gamesSel.value : '__timespy__';
-  const isGameMode  = selectedGame !== '__timespy__';
-
-  const allData     = platform === 'windows' ? winData        : androidData;
-  const selected    = platform === 'windows' ? winSelected    : androidSelected;
-  const highlighted = platform === 'windows' ? winHighlighted : androidHighlighted;
-  const panel       = document.getElementById(platform === 'windows' ? 'win-chart-panel' : 'android-chart-panel');
-  const colors      = platform === 'windows' ? WIN_COLORS     : ANDROID_COLORS;
-
-  if (isGameMode) {
-    // ── Game FPS mode ─────────────────────────────────────────────────────────
-    const gameData   = games[selectedGame];
-    const metricName = metricSel && metricSel.style.display !== 'none' && metricSel.value
-      ? metricSel.value
-      : (gameData ? gameData.metrics[0] : null);
-
-    if (!gameData || !metricName) {
-      panel.innerHTML = `<div class="status-msg">No game data available.</div>`;
-      return;
-    }
-
-    // Build entries: devices that have data for this metric AND are selected
-    let entries = Object.entries(gameData.devices)
-      .filter(([dev]) => selected.has(dev))
-      .map(([dev, metrics]) => ({ name: dev, score: metrics[metricName] }))
-      .filter(e => e.score != null && !isNaN(e.score))
-      .sort((a, b) => b.score - a.score);
-
-    if (entries.length === 0) {
-      panel.innerHTML = `<div class="status-msg">No data for selected devices.</div>`;
-      return;
-    }
-
-    const anyHL    = entries.some(d => highlighted.has(d.name));
-    const maxScore = Math.max(...entries.map(d => d.score), 1);
-    const isHigherBetter = !metricName.toLowerCase().includes('low') && !metricName.toLowerCase().includes('min');
-
-    let html = `
-      <div class="chart-heading">${esc(selectedGame)}</div>
-      <div class="chart-subheading">${esc(metricName)} &nbsp;·&nbsp; ${isHigherBetter ? 'Higher' : 'Higher'} is better &nbsp;·&nbsp; Sorted high to low${anyHL ? ' &nbsp;·&nbsp; <span style="color:var(--highlight)">★ Highlighted</span>' : ''}</div>
-    `;
-
-    entries.forEach(({ name, score }, i) => {
-      const pct      = (score / maxScore) * 100;
-      const isHL     = highlighted.has(name);
-      const color    = isHL ? HIGHLIGHT_COLOR : colors[i % colors.length];
-      const rowClass = anyHL ? (isHL ? 'bar-row is-highlighted' : 'bar-row dimmed') : 'bar-row';
-      const barGrad  = isHL
-        ? `linear-gradient(90deg, ${HIGHLIGHT_COLOR}88, ${HIGHLIGHT_COLOR})`
-        : `linear-gradient(90deg, ${color}77, ${color})`;
-      const delay    = animate ? i * 45 : 0;
-      const initVal  = animate ? '0' : score.toFixed(1);
-
-      html += `
-        <div class="${rowClass}" style="animation-delay:${delay}ms">
-          <div class="bar-label" title="${esc(name)}">${isHL ? '★ ' : ''}${esc(name)}</div>
-          <div class="bar-track">
-            <div class="bar-fill" data-pct="${pct}" style="background:${barGrad}">
-              <span class="bar-value" data-target="${score}" data-decimal="1">${initVal}</span>
+      <div class="workspace">
+        <aside class="filters" aria-label="Benchmark filters">
+          <div class="filter-title">
+            <h2>Build your comparison</h2>
+            <span>01 / FILTER</span>
+          </div>
+          <label for="dataset">Benchmark</label
+          ><select id="dataset" disabled>
+            <option>Loading benchmarks…</option>
+          </select>
+          <div id="metric-group" hidden>
+            <label for="metric">Metric</label
+            ><select id="metric"></select>
+          </div>
+          <div class="device-heading">
+            <label for="search">Devices <span id="device-count"></span></label
+            ><button id="reset" class="text-button" disabled>Reset</button>
+          </div>
+          <div class="search-wrap">
+            <span aria-hidden="true">⌕</span
+            ><input
+              id="search"
+              type="search"
+              placeholder="Search devices…"
+              disabled
+            />
+          </div>
+          <div class="selection-actions">
+            <button id="all" disabled>Select all</button
+            ><button id="none" disabled>Clear</button>
+          </div>
+          <div id="devices" class="devices"></div>
+          <p class="filter-help">
+            <span>☆</span> Star a device to keep it in focus.
+          </p>
+        </aside>
+        <section
+          id="results"
+          tabindex="-1"
+          class="results"
+          aria-label="Benchmark results"
+        >
+          <div class="summary">
+            <div>
+              <p>DEVICES COMPARED</p>
+              <strong id="stat-count">—</strong><span>in this view</span>
+            </div>
+            <div>
+              <p>TOP SCORE</p>
+              <strong id="stat-score">—</strong
+              ><span id="stat-leader">Waiting for data</span>
+            </div>
+            <div>
+              <p>BENCHMARK</p>
+              <strong id="stat-type" class="stat-type">—</strong
+              ><span id="stat-unit">Source-reported results</span>
             </div>
           </div>
-        </div>`;
-    });
-
-    panel.innerHTML = html;
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      panel.querySelectorAll('.bar-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
-      if (animate) animateCounters(panel);
-    }));
-    return;
-  }
-
-  // ── Time Spy mode ──────────────────────────────────────────────────────────
-  const visible = allData.filter(d => selected.has(d.name));
-  if (visible.length === 0) {
-    panel.innerHTML = `<div class="status-msg">Select at least one device above.</div>`;
-    return;
-  }
-
-  const anyHL    = visible.some(d => highlighted.has(d.name));
-  const maxScore = Math.max(...visible.map(d => d.score), 1);
-
-  let html = `
-    <div class="chart-heading">Time Spy Average</div>
-    <div class="chart-subheading">Higher is better &nbsp;·&nbsp; Sorted by score (high to low)${anyHL ? ' &nbsp;·&nbsp; <span style="color:var(--highlight)">★ Highlighted</span>' : ''}</div>
-  `;
-
-  visible.forEach(({ name, score }, i) => {
-    const pct      = (score / maxScore) * 100;
-    const isHL     = highlighted.has(name);
-    const color    = isHL ? HIGHLIGHT_COLOR : colors[i % colors.length];
-    const rowClass = anyHL ? (isHL ? 'bar-row is-highlighted' : 'bar-row dimmed') : 'bar-row';
-    const barGrad  = isHL
-      ? `linear-gradient(90deg, ${HIGHLIGHT_COLOR}88, ${HIGHLIGHT_COLOR})`
-      : `linear-gradient(90deg, ${color}77, ${color})`;
-    const delay    = animate ? i * 45 : 0;
-    const initVal  = animate ? '0' : Math.round(score).toLocaleString();
-
-    html += `
-      <div class="${rowClass}" style="animation-delay:${delay}ms">
-        <div class="bar-label" title="${esc(name)}">${isHL ? '★ ' : ''}${esc(name)}</div>
-        <div class="bar-track">
-          <div class="bar-fill" data-pct="${pct}" style="background:${barGrad}">
-            <span class="bar-value" data-target="${score}">${initVal}</span>
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <p class="eyebrow">02 / RESULTS</p>
+                <h2 id="chart-title">Performance ranking</h2>
+                <p id="chart-subtitle">Loading the latest published results.</p>
+              </div>
+              <button id="export" class="export" disabled>↓ Export CSV</button>
+            </div>
+            <div class="chart-toolbar">
+              <span><i></i> <span id="legend">Windows devices</span></span
+              ><label
+                >Sort
+                <select id="sort">
+                  <option value="score">Score: high to low</option>
+                  <option value="name">Device: A–Z</option>
+                </select></label
+              >
+            </div>
+            <div id="chart" aria-live="polite">
+              <div class="empty">Loading benchmark data…</div>
+            </div>
+            <div class="chart-foot">
+              <span id="result-count">Waiting for results</span
+              ><span>Source: Wulff Den / Google Sheets ↗</span>
+            </div>
           </div>
-        </div>
-      </div>`;
-  });
-
-  panel.innerHTML = html;
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    panel.querySelectorAll('.bar-fill').forEach(el => { el.style.width = el.dataset.pct + '%'; });
-    if (animate) animateCounters(panel);
-  }));
-}
-
-// ── Tab switch ────────────────────────────────────────────────────────────────
-function switchTab(platform) {
-  currentPlatform = platform;
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + platform).classList.add('active');
-  document.querySelector('.' + (platform === 'windows' ? 'win' : 'android') + '-tab').classList.add('active');
-  document.querySelector('h1 span').style.color =
-    platform === 'windows' ? 'var(--win-accent)' : 'var(--android-accent)';
-  // Update play button glow colour
-  const btn = document.getElementById('play-btn');
-  if (platform === 'windows') {
-    btn.style.setProperty('--play-color', '#00c2ff');
-    btn.style.setProperty('--play-glow',  'rgba(0,194,255,0.4)');
-  } else {
-    btn.style.setProperty('--play-color', '#3ddc84');
-    btn.style.setProperty('--play-glow',  'rgba(61,220,132,0.4)');
-  }
-}
-
-// ── Replay animation ──────────────────────────────────────────────────────────
-function replayAnimation() {
-  const btn      = document.getElementById('play-btn');
-  const platform = currentPlatform;
-  const panel    = document.getElementById(platform === 'windows' ? 'win-chart-panel' : 'android-chart-panel');
-
-  // Collapse bars and reset counters to 0
-  panel.querySelectorAll('.bar-fill').forEach(el => {
-    el.style.transition = 'none';
-    el.style.width = '0%';
-  });
-  panel.querySelectorAll('.bar-value').forEach(el => { el.textContent = '0'; });
-  panel.querySelectorAll('.bar-row').forEach(el => {
-    el.style.animation = 'none';
-    el.style.opacity   = '0';
-    el.style.transform = 'translateX(-12px)';
-  });
-
-  btn.classList.add('playing');
-  setTimeout(() => {
-    renderChart(platform, true);
-    setTimeout(() => btn.classList.remove('playing'), 1200);
-  }, 80);
-}
-
-// ── Error display ─────────────────────────────────────────────────────────────
-function showError(id, msg) {
-  document.getElementById(id).innerHTML =
-    `<div style="color:#f87171;font-family:'Barlow Condensed',sans-serif;text-align:center;padding:20px">
-      <div style="font-size:28px;margin-bottom:10px">⚠</div>
-      <div style="font-size:13px;letter-spacing:1px;margin-bottom:8px">FAILED TO LOAD DATA</div>
-      <div style="font-size:11px;color:var(--text-muted);max-width:500px;margin:0 auto;
-                  line-height:1.8;text-transform:none;letter-spacing:0">${msg}</div>
-    </div>`;
-}
-
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ── Populate game dropdown ────────────────────────────────────────────────────
-function populateGameDropdown(platform, games) {
-  const sel = document.getElementById(platform === 'windows' ? 'win-game-select' : 'android-game-select');
-  // Remove any existing game options (keep first = Time Spy)
-  while (sel.options.length > 1) sel.remove(1);
-  Object.keys(games).forEach(gameName => {
-    const opt = document.createElement('option');
-    opt.value = gameName;
-    opt.textContent = gameName;
-    sel.appendChild(opt);
-  });
-}
-
-// ── Dataset change handler ────────────────────────────────────────────────────
-function onDatasetChange(platform) {
-  const gamesSel   = document.getElementById(platform === 'windows' ? 'win-game-select'   : 'android-game-select');
-  const metricSel  = document.getElementById(platform === 'windows' ? 'win-metric-select' : 'android-metric-select');
-  const games      = platform === 'windows' ? winGames : androidGames;
-  const data       = platform === 'windows' ? winData  : androidData;
-  const selected   = platform === 'windows' ? winSelected : androidSelected;
-  const selectedGame = gamesSel.value;
-
-  if (selectedGame === '__timespy__') {
-    metricSel.style.display = 'none';
-    // Restore time spy device selection
-    selected.clear();
-    const tsData = platform === 'windows' ? winData : androidData;
-    tsData.forEach(({ name }) => selected.add(name));
-    renderChips(platform, null);
-    renderChart(platform);
-    return;
-  }
-
-  // Populate metric dropdown for this game
-  const gameData = games[selectedGame];
-  metricSel.innerHTML = '';
-  (gameData ? gameData.metrics : []).forEach(m => {
-    const opt = document.createElement('option');
-    opt.value = m; opt.textContent = m;
-    metricSel.appendChild(opt);
-  });
-  metricSel.style.display = gameData && gameData.metrics.length > 1 ? '' : 'none';
-
-  // Select all devices for this game by default
-  selected.clear();
-  if (gameData) Object.keys(gameData.devices).forEach(n => selected.add(n));
-
-  renderChips(platform, gameData || null);
-  renderChart(platform);
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-async function init() {
-  try {
-    const text   = await fetchCSV(WIN_URL);
-    const parsed = parseData(parseCSV(text));
-    winData  = parsed.timespy;
-    winGames = parsed.games;
-    winNotReally = parsed.notReallyHandhelds || new Set();
-    winData.forEach(({ name }) => {
-      if (!winNotReally.has(name)) winSelected.add(name);
-    });
-    populateGameDropdown('windows', winGames);
-    renderChips('windows'); renderChart('windows');
-  } catch(e) { console.error('Windows:', e); showError('win-loading', e.message); }
-
-  try {
-    const text   = await fetchCSV(ANDROID_URL);
-    const parsed = parseData(parseCSV(text));
-    androidData  = parsed.timespy;
-    androidGames = parsed.games;
-    androidNotReally = parsed.notReallyHandhelds || new Set();
-    androidData.forEach(({ name }) => {
-      if (!androidNotReally.has(name)) androidSelected.add(name);
-    });
-    populateGameDropdown('android', androidGames);
-    renderChips('android'); renderChart('android');
-  } catch(e) { console.error('Android:', e); showError('android-loading', e.message); }
-}
-
-init();
-</script>
-</body>
+          <p class="method-note">
+            About these numbers
+            <span
+              >Scores reflect the configurations in the source sheet. Game
+              settings and resolutions can differ between devices; these results
+              are a reference, not a controlled buying recommendation.</span
+            >
+          </p>
+        </section>
+      </div>
+      <footer>
+        <span
+          >HANDHELD BENCHMARKS <span class="footer-divider">/</span> Independent
+          community explorer</span
+        ><a id="sheet-link" target="_blank" rel="noopener"
+          >View source spreadsheet ↗</a
+        >
+      </footer>
+    </main>
+  </body>
 </html>
