@@ -115,8 +115,8 @@ function renderChart() {
   const isGame = s.dataset !== "__timespy__",
     title = isGame ? s.dataset : "Time Spy Average";
   $("stat-count").textContent = rows.length;
-  $("stat-score").textContent = best ? format(best.score) : "—";
-  $("stat-leader").textContent = best?.name || "No devices selected";
+  renderWinner(rows);
+  $("compare-open").disabled = rows.length < 2;
   $("stat-type").textContent = isGame ? "Game performance" : "Time Spy";
   $("stat-unit").textContent = isGame ? s.metric : "Average benchmark score";
   $("chart-title").textContent = title;
@@ -127,23 +127,101 @@ function renderChart() {
   $("export").disabled = !rows.length;
   const anyStar = rows.some((d) => s.stars.has(d.name));
   const ranks = new Map(
-    [...rows].sort((a, b) => b.score - a.score).map((d, i) => [d.name, i + 1]),
+    rows.map((d) => [
+      d.name,
+      rows.filter((other) => other.score > d.score).length + 1,
+    ]),
   );
   $("chart").className = rows.length ? "chart" : "";
   $("chart").innerHTML = rows.length
     ? rows
         .map(
-          (d) =>
-            `<div class="bar-row ${s.stars.has(d.name) ? "focused" : anyStar ? "muted" : ""}"><span class="rank">${String(ranks.get(d.name)).padStart(2, "0")}</span><div class="bar-label">${s.stars.has(d.name) ? "★ " : ""}${esc(d.name)}${d.condition ? `<small>${esc(d.condition)}</small>` : ""}</div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${Math.max(0, (d.score / best.score) * 100)}%"></div></div><span class="bar-value">${format(d.score)}</span></div>`,
+          (d, index) =>
+            `<button type="button" data-result="${index}" aria-label="Compare ${esc(d.name)}, score ${format(d.score)}" class="bar-row ${d.score === best.score ? "leader-row" : ""} ${s.stars.has(d.name) ? "focused" : anyStar && d.score !== best.score ? "muted" : ""}"><span class="rank">${String(ranks.get(d.name)).padStart(2, "0")}</span><div class="bar-label">${s.stars.has(d.name) ? "★ " : ""}${esc(d.name)}${d.score === best.score ? '<span class="leader-badge">TOP SCORE</span>' : ""}${d.condition ? `<small>${esc(d.condition)}</small>` : ""}</div><div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${Math.max(0, (d.score / best.score) * 100)}%"></div></div><span class="bar-value">${format(d.score)}<small>${format((d.score / best.score) * 100)}% of leader</small></span></button>`,
         )
         .join("")
     : '<div class="empty">No results in this comparison.<br>Select devices or choose another metric.<button id="restore">Select all devices</button></div>';
+  $("chart")
+    .querySelectorAll("[data-result]")
+    .forEach((button) =>
+      button.addEventListener("click", () =>
+        openComparison(rows[button.dataset.result].name),
+      ),
+    );
   $("restore")?.addEventListener("click", () => {
     entries().forEach((d) => selection().add(d.name));
     renderDevices();
     renderChart();
   });
 }
+function renderWinner(rows) {
+  const ranked = [...rows].sort((a, b) => b.score - a.score),
+    best = ranked[0];
+  $("winner").hidden = !best;
+  if (!best) return;
+  const leaders = ranked.filter((d) => d.score === best.score);
+  const runner = ranked[1];
+  const gap =
+    leaders.length > 1
+      ? `Tied with ${leaders.length - 1} other ${leaders.length === 2 ? "device" : "devices"}`
+      : runner
+        ? `${format((best.score / runner.score - 1) * 100)}% ahead of ${runner.name}`
+        : "The only device in this view";
+  $("winner").innerHTML =
+    `<div class="winner-symbol" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M15 8h18v13a9 9 0 0 1-18 0V8Zm0 3H8v7a9 9 0 0 0 9 9m16-16h7v7a9 9 0 0 1-9 9M24 30v9m-9 2h18"/></svg></div><div class="winner-copy"><p class="eyebrow">${leaders.length > 1 ? "JOINT LEADER" : "CURRENT LEADER"} <span class="winner-scope">/ SELECTED DEVICES</span></p><h2 id="stat-leader">${esc(best.name)}</h2><p class="winner-gap">${esc(gap)}</p></div><div class="winner-score"><span id="stat-score">${format(best.score)}</span><small>${current().dataset === "__timespy__" ? "AVERAGE SCORE" : esc(current().metric)}</small></div><button id="winner-compare" aria-label="Compare the leading device" ${rows.length < 2 ? "disabled" : ""}>Compare leader <span aria-hidden="true">↗</span></button>`;
+  $("winner-compare").addEventListener("click", () =>
+    openComparison(best.name),
+  );
+}
+function openComparison(name) {
+  const rows = [...visible()].sort((a, b) => b.score - a.score);
+  if (!rows.length) return;
+  for (const id of ["compare-a", "compare-b"])
+    $(id).innerHTML = rows
+      .map((d) => `<option value="${esc(d.name)}">${esc(d.name)}</option>`)
+      .join("");
+  $("compare-a").value = name || rows[0].name;
+  $("compare-b").value =
+    rows.find((d) => d.name !== $("compare-a").value)?.name || rows[0].name;
+  $("comparison-context").textContent =
+    `${platform === "windows" ? "Windows" : "Android"} · ${current().dataset === "__timespy__" ? "Time Spy Average" : `${current().dataset} · ${current().metric}`}`;
+  renderComparison();
+  $("comparison").showModal();
+}
+function renderComparison() {
+  const rows = visible(),
+    a = rows.find((d) => d.name === $("compare-a").value),
+    b = rows.find((d) => d.name === $("compare-b").value);
+  if (!a || !b) return;
+  const max = Math.max(a.score, b.score),
+    winner = a.score > b.score ? a : b,
+    loser = winner === a ? b : a;
+  const message =
+    a.name === b.name
+      ? "Choose a different device to compare."
+      : a.score === b.score
+        ? "An even match on this metric."
+        : `${winner.name} scores ${format((winner.score / loser.score - 1) * 100)}% higher.`;
+  $("comparison-result").innerHTML =
+    `<div class="matchup-cards">${[a, b].map((d, i) => `<div class="matchup-card ${d.score === max ? "matchup-best" : ""}"><span class="matchup-label">DEVICE ${i === 0 ? "A" : "B"}${d.score === max && a.score !== b.score ? " · HIGHER SCORE" : ""}</span><strong>${format(d.score)}</strong><div class="matchup-meter"><i style="width:${(d.score / max) * 100}%"></i></div><h3>${esc(d.name)}</h3><p>${esc(d.condition || "No per-device game settings provided for this benchmark.")}</p></div>`).join("")}</div><p class="matchup-verdict">${esc(message)}</p>`;
+}
+$("compare-open").addEventListener("click", () => openComparison());
+$("compare-close").addEventListener("click", () => $("comparison").close());
+for (const id of ["compare-a", "compare-b"])
+  $(id).addEventListener("change", renderComparison);
+$("comparison").addEventListener("click", (event) => {
+  if (event.target === $("comparison")) {
+    const box = $("comparison").getBoundingClientRect();
+    if (
+      event.clientX < box.left ||
+      event.clientX > box.right ||
+      event.clientY < box.top ||
+      event.clientY > box.bottom
+    )
+      $("comparison").close();
+  }
+});
+
 function render() {
   const s = current();
   document.body.dataset.platform = platform;
@@ -154,7 +232,15 @@ function render() {
   $("legend").textContent =
     `${platform === "windows" ? "Windows" : "Android"} devices`;
   $("sheet-link").href = `${BASE}?gid=${gids[platform]}&single=true`;
-  for (const id of ["dataset", "search", "reset", "all", "none", "sort"])
+  for (const id of [
+    "dataset",
+    "search",
+    "reset",
+    "all",
+    "none",
+    "sort",
+    "top-five",
+  ])
     $(id).disabled = !s.data;
   $("search").value = s.query;
   $("connection").textContent = s.loading
@@ -167,12 +253,9 @@ function render() {
     $("metric-group").hidden = true;
     $("devices").innerHTML = "";
     $("device-count").textContent = "";
-    ["stat-count", "stat-score", "stat-type"].forEach(
-      (id) => ($(id).textContent = "—"),
-    );
-    $("stat-leader").textContent = s.loading
-      ? "Waiting for data"
-      : "Source unavailable";
+    ["stat-count", "stat-type"].forEach((id) => ($(id).textContent = "—"));
+    $("winner").hidden = true;
+    $("compare-open").disabled = true;
     $("stat-unit").textContent = "Source-reported results";
     $("chart-title").textContent = "Performance ranking";
     $("chart-subtitle").textContent = s.loading
@@ -247,6 +330,16 @@ $("search").addEventListener("input", () => {
 });
 $("sort").addEventListener("change", () => {
   if (current().data) renderChart();
+});
+$("top-five").addEventListener("click", () => {
+  const top = entries()
+    .filter((d) => Number.isFinite(d.score))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+  selection().clear();
+  top.forEach((d) => selection().add(d.name));
+  renderDevices();
+  renderChart();
 });
 $("all").addEventListener("click", () => {
   entries().forEach((d) => selection().add(d.name));

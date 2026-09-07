@@ -37,14 +37,17 @@
     <main>
       <section class="hero">
         <div>
-          <p class="eyebrow"><span></span> THE HANDHELD PERFORMANCE EXPLORER</p>
-          <h1>Small devices.<br /><em>Big comparisons.</em></h1>
+          <p class="eyebrow"><span></span> THE DEVICE PERFORMANCE EXPLORER</p>
+          <h1>Real performance.<br /><em>Clear comparisons.</em></h1>
           <p class="intro">
-            Find out how your handheld stacks up. Explore benchmark<br
+            From handhelds to phones, tablets, and PCs. Explore benchmark<br
               class="desktop-break"
             />
             scores and game performance from Wulff Den’s testing.
           </p>
+          <a class="explore-link" href="#results"
+            >Explore the rankings <span aria-hidden="true">↘</span></a
+          >
         </div>
         <div class="hero-art" aria-hidden="true">
           <div class="orbit orbit-one"></div>
@@ -57,7 +60,7 @@
             <div class="console-buttons">●<br />● ●<br />●</div>
           </div>
           <span class="art-caption"
-            >PORTABLE HARDWARE. MEASURABLE PERFORMANCE.</span
+            >DIFFERENT DEVICES. ONE CLEARER PICTURE.</span
           >
         </div>
       </section>
@@ -100,7 +103,8 @@
           </div>
           <div class="selection-actions">
             <button id="all" disabled>Select all</button
-            ><button id="none" disabled>Clear</button>
+            ><button id="none" disabled>Clear</button
+            ><button id="top-five" disabled>Top 5</button>
           </div>
           <div id="devices" class="devices"></div>
           <p class="filter-help">
@@ -113,21 +117,29 @@
           class="results"
           aria-label="Benchmark results"
         >
+          <section
+            id="winner"
+            class="winner"
+            aria-label="Highest scoring device"
+            hidden
+          ></section>
           <div class="summary">
             <div>
               <p>DEVICES COMPARED</p>
               <strong id="stat-count">—</strong><span>in this view</span>
             </div>
             <div>
-              <p>TOP SCORE</p>
-              <strong id="stat-score">—</strong
-              ><span id="stat-leader">Waiting for data</span>
-            </div>
-            <div>
               <p>BENCHMARK</p>
               <strong id="stat-type" class="stat-type">—</strong
               ><span id="stat-unit">Source-reported results</span>
             </div>
+            <button id="compare-open" class="compare-launch" disabled>
+              <span class="compare-icon" aria-hidden="true">⇄</span
+              ><span
+                ><strong>Head to head</strong
+                ><small>Pick two. See the difference.</small></span
+              ><span aria-hidden="true">↗</span>
+            </button>
           </div>
           <div class="chart-card">
             <div class="chart-header">
@@ -148,6 +160,10 @@
                 </select></label
               >
             </div>
+            <p class="interaction-hint">
+              Select any result to compare it with another device
+              <span aria-hidden="true">↗</span>
+            </p>
             <div id="chart" aria-live="polite">
               <div class="empty">Loading benchmark data…</div>
             </div>
@@ -175,5 +191,25 @@
         >
       </footer>
     </main>
+    <dialog id="comparison" aria-labelledby="comparison-title">
+      <div class="dialog-header">
+        <div>
+          <p class="eyebrow">SIDE BY SIDE</p>
+          <h2 id="comparison-title">The matchup.</h2>
+        </div>
+        <button id="compare-close" aria-label="Close comparison">×</button>
+      </div>
+      <p id="comparison-context"></p>
+      <div class="matchup-selectors">
+        <label>Device A<select id="compare-a"></select></label
+        ><span aria-hidden="true">VS</span
+        ><label>Device B<select id="compare-b"></select></label>
+      </div>
+      <div id="comparison-result" aria-live="polite"></div>
+      <p class="comparison-note">
+        Comparing the selected metric. Check the reported configurations below
+        each device; settings can differ.
+      </p>
+    </dialog>
   </body>
 </html>

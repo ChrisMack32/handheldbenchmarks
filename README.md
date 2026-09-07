@@ -4,7 +4,9 @@ A responsive performance explorer built from [bobwulff/handheldbenchmarks](https
 
 ## What's improved
 
-- Responsive dark dashboard with platform colors, summary cards, and readable ranked bars.
+- Responsive dark dashboard with Windows blue and Android green, a prominent current-leader spotlight, summary cards, and readable ranked bars.
+- Interactive head-to-head comparison with device pickers, relative scores, and percentage differences. Click any chart result or use the dedicated comparison buttons.
+- Top-five selection shortcut, leader badges (including ties), and percentages relative to the leading selected device.
 - Searchable device checkboxes and keyboard/touch-accessible star highlighting.
 - Per-platform, per-benchmark selections retained while switching views (for the current page session).
 - Game metric selection, score/alphabetical sorting, and CSV export of the current comparison.
