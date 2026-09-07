@@ -1,0 +1,145 @@
+/* Quiet decorative movement. Scores and chart geometry remain stable. */
+.motion-toggle {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #50505b;
+  color: #a5a5af;
+  padding: 6px 0;
+  font:
+    8px "IBM Plex Mono",
+    monospace;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.motion-toggle:hover {
+  color: var(--den-cyan);
+  border-color: var(--den-cyan);
+}
+.motion-toggle:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.hero-footnote {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+.bar-fill {
+  animation: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-motion="on"] .wolf-display {
+    animation: den-drift 9s ease-in-out infinite;
+  }
+  html[data-motion="on"] .signal-bars i {
+    transform-origin: bottom;
+    animation: den-signal 4.6s ease-in-out infinite;
+  }
+  html[data-motion="on"] .signal-bars i:nth-child(2n) {
+    animation-delay: -1.6s;
+  }
+  html[data-motion="on"] .signal-bars i:nth-child(3n) {
+    animation-delay: -3.1s;
+  }
+  html[data-motion="on"] .den-art::before {
+    animation: den-breathe 7s ease-in-out infinite;
+  }
+  html[data-motion="on"] .motion-enter {
+    animation: den-enter 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  html[data-motion="on"] .den-art.motion-enter {
+    animation-duration: 0.9s;
+  }
+  html[data-motion="on"] dialog[open] {
+    animation: den-dialog 0.2s ease-out;
+  }
+  html[data-motion="on"] .export,
+  html[data-motion="on"] .explore-link,
+  html[data-motion="on"] .star,
+  html[data-motion="on"] .compare-launch {
+    transition:
+      background 0.2s,
+      color 0.2s,
+      border-color 0.2s,
+      transform 0.2s;
+  }
+  html[data-motion="on"] .export:hover {
+    transform: translateY(-1px);
+  }
+  html[data-motion="on"] .explore-link:hover {
+    transform: translateY(-2px);
+  }
+  html[data-motion="on"] .den-art.motion-idle::before,
+  html[data-motion="on"] .den-art.motion-idle .wolf-display,
+  html[data-motion="on"] .den-art.motion-idle .signal-bars i {
+    animation-play-state: paused;
+  }
+}
+@keyframes den-drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -5px;
+  }
+}
+@keyframes den-signal {
+  0%,
+  100% {
+    transform: scaleY(0.85);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+@keyframes den-breathe {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes den-enter {
+  from {
+    opacity: 0.45;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes den-dialog {
+  from {
+    opacity: 0.5;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+html[data-motion="off"] {
+  scroll-behavior: auto;
+}
+@media (max-width: 760px) {
+  .hero-footnote {
+    display: flex;
+  }
+  .motion-toggle {
+    font-size: 7px;
+  }
+}

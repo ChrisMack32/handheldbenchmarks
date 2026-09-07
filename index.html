@@ -17,7 +17,9 @@
     />
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="brand.css" />
+    <link rel="stylesheet" href="motion.css" />
     <script type="module" src="app.js"></script>
+    <script type="module" src="motion.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#results">Skip to results</a>
@@ -60,7 +62,15 @@
             <a class="explore-link" href="#results"
               >Find your next comparison <span aria-hidden="true">↘</span></a
             ><span class="hero-footnote"
-              >NO GUESSWORK.<br />JUST THE NUMBERS.</span
+              ><span>NO GUESSWORK.<br />JUST THE NUMBERS.</span
+              ><button
+                type="button"
+                id="motion-toggle"
+                class="motion-toggle"
+                aria-pressed="false"
+              >
+                Pause motion
+              </button></span
             >
           </div>
         </div>

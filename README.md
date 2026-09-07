@@ -33,7 +33,7 @@ There are no runtime packages, build step, API keys, or third-party CORS proxies
 
 ## Hosting
 
-Serve `index.html`, `styles.css`, `brand.css`, `app.js`, `data.js`, and the `assets/` directory together on any static host. For GitHub Pages, choose **Deploy from a branch**, select `main`, and use `/ (root)`. All asset paths are relative, so repository subpaths work.
+Serve `index.html`, `styles.css`, `brand.css`, `motion.css`, `motion.js`, `app.js`, `data.js`, and the `assets/` directory together on any static host. For GitHub Pages, choose **Deploy from a branch**, select `main`, and use `/ (root)`. All asset paths are relative, so repository subpaths work.
 
 ## Data and interpretation
 
@@ -53,3 +53,7 @@ The community theme draws from Wulff Den's [YouTube channel](https://www.youtube
 - `assets/wulffden-channel-texture.jpg`: channel banner texture from the official YouTube channel, retrieved September 6, 2026. Source: https://yt3.googleusercontent.com/-p57WExE67j0-YM8OCW54BdgC0oMNA2sMnBlYxCBKGSfA4XnYzZJO31iIF4ku43_6He856k51A=w1138-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj
 
 Original brand assets remain attributable to Wulff Den. This fork is labeled as an independent community edition and does not claim endorsement.
+
+## Motion
+
+Decorative hero drift and signal bars, one-time section entrances, and short dialog/hover transitions add restrained motion. The Pause motion control persists locally. System reduced-motion preferences disable animation; offscreen or backgrounded hero artwork pauses automatically. Chart bars stay steady during filtering.
