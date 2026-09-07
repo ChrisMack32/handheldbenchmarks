@@ -221,6 +221,14 @@ main {
   );
   pointer-events: none;
 }
+.wolf-display.easter-egg img {
+  border-radius: 12px;
+  background: #101014;
+  object-fit: contain;
+}
+.wolf-display.easter-egg .scanlines {
+  opacity: 0;
+}
 .wolf-display::after {
   content: "";
   position: absolute;
